@@ -1,0 +1,787 @@
+GAMS Rev 235  WEX-WEI 23.5.2 x86_64/MS Windows                                                     06/28/17 10:49:39 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  SET i;
+   2   
+   3  PARAMETERS  CARGAINICIAL , HORASALIDA , HORALLEGADA ;
+   4  PARAMETER PERIODOESTACIONADO(I) ;
+   5   
+GDXIN   C:\Users\Ignacio\Documents\Universidad\4\SegundoSemestre\TFG\___AuxiliarParaToquetearSinCagarla\GAMS\GAMSProgMatlab
+        \Prog-v5MINLP\MtoG.gdx
+--- LOAD  i = 1:i
+--- LOAD  CARGAINICIAL = 3:CARGAINICIAL
+--- LOAD  HORASALIDA = 2:HORASALIDA
+--- LOAD  HORALLEGADA = 4:HORALLEGADA
+--- LOAD  PERIODOESTACIONADO = 5:PERIODOESTACIONADO
+  10   
+  11  PARAMETERS
+  12   
+  13   
+  14  *Precio por KWh
+  15    PRECIOENERGIA(I) precio energía  /1       3.
+  16                           2       3.
+  17                           3       4.
+  18                           4       3.
+  19                           5       3.
+  20                           6       4.
+  21                           7       4.
+  22                           8       6.
+  23                           9       8.
+  24                           10      10.
+  25                           11      10.
+  26                           12      9.
+  27                           13      7.
+  28                           14      6.
+  29                           15      6.
+  30                           16      8.
+  31                           17      10.
+  32                           18      11.
+  33                           19      12.
+  34                           20      10.
+  35                           21      8.
+  36                           22      3.
+  37                           23      3.
+  38                           24      3. /
+  39   
+  40  *Producción fotovoltaica de la escuela / hora
+  41    PRODUCCIONFOTOVOLTAICA(I) p. fotovoltaica /1       0.
+  42                           2       0.
+  43                           3       0.
+  44                           4       0.
+  45                           5       0.
+  46                           6       0.
+  47                           7       0.
+  48                           8       1.
+  49                           9       2.
+  50                           10      3.
+  51                           11      3.5
+  52                           12      4.
+  53                           13      4.3
+  54                           14      4.5
+  55                           15      4.5
+  56                           16      4.4
+  57                           17      4.
+  58                           18      3.5
+  59                           19      2.
+  60                           20      1.
+  61                           21      0.
+  62                           22      0.
+  63                           23      0.
+  64                           24      0. /
+  65   
+  66  *Consumo de la escuela / hora
+  67    CONSUMOESCUELA(I) consumo escuela /1       50.
+  68                           2       60.
+  69                           3       70.
+  70                           4       60.
+GAMS Rev 235  WEX-WEI 23.5.2 x86_64/MS Windows                                                     06/28/17 10:49:39 Page 2
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+  71                           5       70.
+  72                           6       70.
+  73                           7       90.
+  74                           8       110.
+  75                           9       130.
+  76                           10      100.
+  77                           11      100.
+  78                           12      90.
+  79                           13      80.
+  80                           14      60.
+  81                           15      60.
+  82                           16      80.
+  83                           17      90.
+  84                           18      100.
+  85                           19      150.
+  86                           20      130.
+  87                           21      80.
+  88                           22      30.
+  89                           23      30.
+  90                           24      30. /
+  91  FOTOVOLTAICASUPERIOR(I)    Vector con un 1 en las posiciones en las que hay más producción que consumo
+  92  ;
+  93   
+  94  SCALAR
+  95           CAPACIDAD               Capacidad de la batería en kWh  /24/
+  96           CARGAALASALIDA          Carga minima cuando se va       /18/
+  97           COUNTERLOOP             Contador para el loop           /0/
+  98           NUMCOCHES               Número de coches                /1/
+  99           RATIOCARGADESCARGA      KWh máximos en 1 hora           /3.68/
+ 100           NODESCARGADEBAJODE      No se descarga por debajo de... /4.8/
+ 101           MAXPOTENCIA             Máxima potencia contratada      /450/
+ 102  ;
+ 103   
+ 104   
+ 105  *LOOP para completar el vector FOTOVOLTAICASUPERIOR. Tiene un 1 si la producción
+ 106  *fotovoltáica en la hora I es menor que el consumo, y un 0 en caso contrario
+ 107  LOOP(I, if ((CONSUMOESCUELA(I) + (NUMCOCHES*RATIOCARGADESCARGA)) < PRODUCCIONFOTOVOLTAICA(I) , FOTOVOLTAICASUPERIOR(I
+      ) = 0;
+ 108          else FOTOVOLTAICASUPERIOR(I) = 1;);
+ 109      );
+ 110   
+ 111  VARIABLES
+ 112  F;
+ 113   
+ 114  POSITIVE VARIABLES
+ 115  CARGA(I), CONSUMOPORHORA(I);
+ 116   
+ 117  BINARY VARIABLES
+ 118  COCHEACEPTADO;
+ 119   
+ 120  *fx para fijar el valor de una variable.
+ 121  *Este loop inicializa el valor de la carga con CARGAINICIAL.
+ 122  *Fija ese valor en todas las horas hasta que llega.
+ 123  LOOP(I, COUNTERLOOP = COUNTERLOOP+1;
+ 124          if (COUNTERLOOP < HORALLEGADA, CARGA.fx(I) =  CARGAINICIAL;);
+ 125          if (COUNTERLOOP = 24, COUNTERLOOP = 0;);
+ 126  );
+ 127   
+ 128   
+ 129  *lo para poner el límite inferior de una variable.
+ 130  *Este loop pone un límite inferior a la carga de salida. Aseguramos que el
+ 131  *coche se va con una carga mínima.
+ 132  *PARA SIMULACIONES 2.1 Y 3.1 CAMBIAR CARGAALASALIDA POR CARGAINICIAL(J).
+ 133   
+ 134  LOOP(I, COUNTERLOOP = COUNTERLOOP+1;
+ 135          if (COUNTERLOOP >= HORASALIDA, if(CARGAINICIAL > CARGAALASALIDA, CARGA.fx(I) = CARGAINICIAL; else CARGA.fx(I)
+       =  CARGAALASALIDA;); ;);
+ 136          if (COUNTERLOOP = 24, COUNTERLOOP = 0;)
+ 137  ;);
+ 138   
+ 139   
+ 140  EQUATIONS
+ 141       OBJ                         La función objetivo
+GAMS Rev 235  WEX-WEI 23.5.2 x86_64/MS Windows                                                     06/28/17 10:49:39 Page 3
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+ 142       ITERACIONCOCHEACEPTADO(I)   Función de las horas 1 a la 24 que incluye la variable binaria COCHEACEPTADO(I)
+ 143       CAPACIDADMAX(I)             Función que condiciona la carga de la batería a la capacidad
+ 144       CARGAMAX(I)                 Función que condiciona la carga  por hora máxima a 3.68 kWh
+ 145       DESCARGAMAX(I)              Función que condiciona la descarga  por hora máxima a 3.68 kWh
+ 146       NODESCARGADEBAJO(I)         Función que no permite descarga por debajo de la carga con la que llega el coche
+ 147       CARGALIMITADA(I)            Función que limita la descarga máxima de la batería a 4.8 kWh
+ 148       DINEROPOSITIVO(I)           Nunca se puede ganar dinero vendiendo energía
+ 149       MAXGASTO(I)                 No superar los 450 kW
+ 150  ;
+ 151   
+ 152  OBJ ..                           F  =E=  sum(I, CONSUMOPORHORA(I));
+ 153   
+ 154  ITERACIONCOCHEACEPTADO(I) ..     FOTOVOLTAICASUPERIOR(I)*(PRECIOENERGIA(I)*[CONSUMOESCUELA(I) - PRODUCCIONFOTOVOLTAIC
+      A(I) + COCHEACEPTADO*[[CARGA(I) - CARGA(I-1)]*PERIODOESTACIONADO(I)]]) =E=  CONSUMOPORHORA(I);
+ 155   
+ 156  CAPACIDADMAX(I) ..               CARGA(I) =L= CAPACIDAD;
+ 157   
+ 158  CARGAMAX(I) ..                   CARGA(I+1) - CARGA(I) =L= RATIOCARGADESCARGA;
+ 159   
+ 160  DESCARGAMAX(I) ..                CARGA(I) - CARGA(I-1) =G= -RATIOCARGADESCARGA;
+ 161   
+ 162  NODESCARGADEBAJO(I) ..           CARGA(I) =G= CARGAINICIAL;
+ 163   
+ 164  *
+ 165  CARGALIMITADA(I) ..              CARGA(I) =G= NODESCARGADEBAJODE;
+ 166   
+ 167  DINEROPOSITIVO(I) ..             CONSUMOPORHORA(I) =G= 0.000001;
+ 168   
+ 169  MAXGASTO(I) ..                   CONSUMOPORHORA(I) =L= PRECIOENERGIA(I)*450;
+ 170  ;
+ 171   
+ 172  MODEL progConCoches4 /OBJ, ITERACIONCOCHEACEPTADO, CAPACIDADMAX, CARGAMAX, DESCARGAMAX, CARGALIMITADA, DINEROPOSITIVO
+      , MAXGASTO/ ;
+ 173  MODEL progConCoches5 /OBJ, ITERACIONCOCHEACEPTADO, CAPACIDADMAX, CARGAMAX, DESCARGAMAX, NODESCARGADEBAJO, CARGALIMITA
+      DA, DINEROPOSITIVO, MAXGASTO/ ;
+ 174   
+ 175  SOLVE progConCoches4 using MINLP minimizing F;
+ 176  *SOLVE progConCoches5 using MINLP minimizing F;
+GAMS Rev 235  WEX-WEI 23.5.2 x86_64/MS Windows                                                     06/28/17 10:49:39 Page 4
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Include File Summary
+
+
+   SEQ   GLOBAL TYPE      PARENT   LOCAL  FILENAME
+
+     1        1 INPUT          0       0  C:\Users\Ignacio\Documents\Universidad\4\SegundoSemestre\TFG\___AuxiliarParaToque
+                                          tearSinCagarla\GAMS\GAMSProgMatlab\Prog-v5MINLP\aaa.gms
+     2        7 GDXIN          1       7  C:\Users\Ignacio\Documents\Universidad\4\SegundoSemestre\TFG\___AuxiliarParaToque
+                                          tearSinCagarla\GAMS\GAMSProgMatlab\Prog-v5MINLP\MtoG.gdx
+
+
+COMPILATION TIME     =        0.000 SECONDS      3 Mb  WEX235-235 Aug 17, 2010
+GAMS Rev 235  WEX-WEI 23.5.2 x86_64/MS Windows                                                     06/28/17 10:49:39 Page 5
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Equation Listing    SOLVE progConCoches4 Using MINLP From line 175
+
+
+---- OBJ  =E=  La función objetivo
+
+OBJ..  F - CONSUMOPORHORA(1) - CONSUMOPORHORA(2) - CONSUMOPORHORA(3) - CONSUMOPORHORA(4) - CONSUMOPORHORA(5)
+     
+      - CONSUMOPORHORA(6) - CONSUMOPORHORA(7) - CONSUMOPORHORA(8) - CONSUMOPORHORA(9) - CONSUMOPORHORA(10)
+     
+      - CONSUMOPORHORA(11) - CONSUMOPORHORA(12) - CONSUMOPORHORA(13) - CONSUMOPORHORA(14) - CONSUMOPORHORA(15)
+     
+      - CONSUMOPORHORA(16) - CONSUMOPORHORA(17) - CONSUMOPORHORA(18) - CONSUMOPORHORA(19) - CONSUMOPORHORA(20)
+     
+      - CONSUMOPORHORA(21) - CONSUMOPORHORA(22) - CONSUMOPORHORA(23) - CONSUMOPORHORA(24) =E= 0 ; (LHS = 0)
+     
+
+---- ITERACIONCOCHEACEPTADO  =E=  Función de las horas 1 a la 24 que incluye la variable binaria COCHEACEPTADO(I)
+
+ITERACIONCOCHEACEPTADO(1)..  - CONSUMOPORHORA(1) =E= -150 ; (LHS = 0, INFES = 150 ****)
+     
+ITERACIONCOCHEACEPTADO(2)..  - CONSUMOPORHORA(2) =E= -180 ; (LHS = 0, INFES = 180 ****)
+     
+ITERACIONCOCHEACEPTADO(3)..  - CONSUMOPORHORA(3) =E= -280 ; (LHS = 0, INFES = 280 ****)
+     
+REMAINING 21 ENTRIES SKIPPED
+
+
+---- CAPACIDADMAX  =L=  Función que condiciona la carga de la batería a la capacidad
+
+CAPACIDADMAX(1)..  CARGA(1) =L= 24 ; (LHS = 12.39697265625)
+     
+CAPACIDADMAX(2)..  CARGA(2) =L= 24 ; (LHS = 12.39697265625)
+     
+CAPACIDADMAX(3)..  CARGA(3) =L= 24 ; (LHS = 12.39697265625)
+     
+REMAINING 21 ENTRIES SKIPPED
+
+
+---- CARGAMAX  =L=  Función que condiciona la carga  por hora máxima a 3.68 kWh
+
+CARGAMAX(1)..  - CARGA(1) + CARGA(2) =L= 3.68 ; (LHS = 0)
+     
+CARGAMAX(2)..  - CARGA(2) + CARGA(3) =L= 3.68 ; (LHS = 0)
+     
+CARGAMAX(3)..  - CARGA(3) + CARGA(4) =L= 3.68 ; (LHS = 0)
+     
+REMAINING 21 ENTRIES SKIPPED
+
+
+---- DESCARGAMAX  =G=  Función que condiciona la descarga  por hora máxima a 3.68 kWh
+
+DESCARGAMAX(1)..  CARGA(1) =G= -3.68 ; (LHS = 12.39697265625)
+     
+DESCARGAMAX(2)..  - CARGA(1) + CARGA(2) =G= -3.68 ; (LHS = 0)
+     
+DESCARGAMAX(3)..  - CARGA(2) + CARGA(3) =G= -3.68 ; (LHS = 0)
+     
+REMAINING 21 ENTRIES SKIPPED
+
+
+---- CARGALIMITADA  =G=  Función que limita la descarga máxima de la batería a 4.8 kWh
+
+CARGALIMITADA(1)..  CARGA(1) =G= 4.8 ; (LHS = 12.39697265625)
+     
+CARGALIMITADA(2)..  CARGA(2) =G= 4.8 ; (LHS = 12.39697265625)
+     
+CARGALIMITADA(3)..  CARGA(3) =G= 4.8 ; (LHS = 12.39697265625)
+     
+REMAINING 21 ENTRIES SKIPPED
+
+
+---- DINEROPOSITIVO  =G=  Nunca se puede ganar dinero vendiendo energía
+
+GAMS Rev 235  WEX-WEI 23.5.2 x86_64/MS Windows                                                     06/28/17 10:49:39 Page 6
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Equation Listing    SOLVE progConCoches4 Using MINLP From line 175
+
+
+     DINEROPOSITIVO  =G=  Nunca se puede ganar dinero vendiendo energía
+
+DINEROPOSITIVO(1)..  CONSUMOPORHORA(1) =G= 1E-6 ; (LHS = 0, INFES = 1E-6 ****)
+     
+DINEROPOSITIVO(2)..  CONSUMOPORHORA(2) =G= 1E-6 ; (LHS = 0, INFES = 1E-6 ****)
+     
+DINEROPOSITIVO(3)..  CONSUMOPORHORA(3) =G= 1E-6 ; (LHS = 0, INFES = 1E-6 ****)
+     
+REMAINING 21 ENTRIES SKIPPED
+
+
+---- MAXGASTO  =L=  No superar los 450 kW
+
+MAXGASTO(1)..  CONSUMOPORHORA(1) =L= 1350 ; (LHS = 0)
+     
+MAXGASTO(2)..  CONSUMOPORHORA(2) =L= 1350 ; (LHS = 0)
+     
+MAXGASTO(3)..  CONSUMOPORHORA(3) =L= 1800 ; (LHS = 0)
+     
+REMAINING 21 ENTRIES SKIPPED
+
+GAMS Rev 235  WEX-WEI 23.5.2 x86_64/MS Windows                                                     06/28/17 10:49:39 Page 7
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Column Listing      SOLVE progConCoches4 Using MINLP From line 175
+
+
+---- F  
+
+F
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       OBJ
+
+
+---- CARGA  
+
+CARGA(1)
+                (.LO, .L, .UP, .M = 12.39697265625, 12.39697265625, 12.39697265625, 0)
+        1       CAPACIDADMAX(1)
+       -1       CARGAMAX(1)
+        1       DESCARGAMAX(1)
+       -1       DESCARGAMAX(2)
+        1       CARGALIMITADA(1)
+
+CARGA(2)
+                (.LO, .L, .UP, .M = 12.39697265625, 12.39697265625, 12.39697265625, 0)
+        1       CAPACIDADMAX(2)
+        1       CARGAMAX(1)
+       -1       CARGAMAX(2)
+        1       DESCARGAMAX(2)
+       -1       DESCARGAMAX(3)
+        1       CARGALIMITADA(2)
+
+CARGA(3)
+                (.LO, .L, .UP, .M = 12.39697265625, 12.39697265625, 12.39697265625, 0)
+        1       CAPACIDADMAX(3)
+        1       CARGAMAX(2)
+       -1       CARGAMAX(3)
+        1       DESCARGAMAX(3)
+       -1       DESCARGAMAX(4)
+        1       CARGALIMITADA(3)
+
+REMAINING 21 ENTRIES SKIPPED
+
+---- CONSUMOPORHORA  
+
+CONSUMOPORHORA(1)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       OBJ
+       -1       ITERACIONCOCHEACEPTADO(1)
+        1       DINEROPOSITIVO(1)
+        1       MAXGASTO(1)
+
+CONSUMOPORHORA(2)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       OBJ
+       -1       ITERACIONCOCHEACEPTADO(2)
+        1       DINEROPOSITIVO(2)
+        1       MAXGASTO(2)
+
+CONSUMOPORHORA(3)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       OBJ
+       -1       ITERACIONCOCHEACEPTADO(3)
+        1       DINEROPOSITIVO(3)
+        1       MAXGASTO(3)
+
+REMAINING 21 ENTRIES SKIPPED
+
+---- COCHEACEPTADO  
+
+COCHEACEPTADO
+                (.LO, .L, .UP, .M = 0, 0, 1, 0)
+     (-99.1758) ITERACIONCOCHEACEPTADO(9)
+       (0)      ITERACIONCOCHEACEPTADO(10)
+       (0)      ITERACIONCOCHEACEPTADO(11)
+       (0)      ITERACIONCOCHEACEPTADO(12)
+       (0)      ITERACIONCOCHEACEPTADO(13)
+       (0)      ITERACIONCOCHEACEPTADO(14)
+       (0)      ITERACIONCOCHEACEPTADO(15)
+GAMS Rev 235  WEX-WEI 23.5.2 x86_64/MS Windows                                                     06/28/17 10:49:39 Page 8
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Column Listing      SOLVE progConCoches4 Using MINLP From line 175
+
+
+     COCHEACEPTADO  
+
+       (0)      ITERACIONCOCHEACEPTADO(16)
+       (0)      ITERACIONCOCHEACEPTADO(17)
+       (0)      ITERACIONCOCHEACEPTADO(18)
+       (0)      ITERACIONCOCHEACEPTADO(19)
+       (0)      ITERACIONCOCHEACEPTADO(20)
+       (0)      ITERACIONCOCHEACEPTADO(21)
+      (54)      ITERACIONCOCHEACEPTADO(22)
+
+GAMS Rev 235  WEX-WEI 23.5.2 x86_64/MS Windows                                                     06/28/17 10:49:39 Page 9
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Model Statistics    SOLVE progConCoches4 Using MINLP From line 175
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           8     SINGLE EQUATIONS          169
+BLOCKS OF VARIABLES           4     SINGLE VARIABLES           50
+NON ZERO ELEMENTS           281     NON LINEAR N-Z             42
+DERIVATIVE POOL               9     CONSTANT POOL              22
+CODE LENGTH                 281     DISCRETE VARIABLES          1
+
+
+GENERATION TIME      =        0.015 SECONDS      4 Mb  WEX235-235 Aug 17, 2010
+
+
+EXECUTION TIME       =        0.015 SECONDS      4 Mb  WEX235-235 Aug 17, 2010
+GAMS Rev 235  WEX-WEI 23.5.2 x86_64/MS Windows                                                    06/28/17 10:49:39 Page 10
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Solution Report     SOLVE progConCoches4 Using MINLP From line 175
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   progConCoches4      OBJECTIVE  F
+     TYPE    MINLP               DIRECTION  MINIMIZE
+     SOLVER  DICOPT              FROM LINE  175
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      2 Locally Optimal           
+**** OBJECTIVE VALUE            13725.2000
+
+ RESOURCE USAGE, LIMIT          0.016      1000.000
+ ITERATION COUNT, LIMIT         6    2000000000
+ EVALUATION ERRORS              0             0
+
+ ------------------------------------------------------------------
+ Dicopt2x-C       Aug 18, 2010 23.5.2 WEX 19143.19383 WEI x86_64/MS Windows
+ ------------------------------------------------------------------
+     Aldo Vecchietti and Ignacio E. Grossmann                      
+     Engineering Design Research Center                            
+     Carnegie Mellon University                                    
+     Pittsburgh, Pennsylvania 15213                                
+ ------------------------------------------------------------------
+
+--- DICOPT: Relaxed NLP gives integer solution
+
+      The Relaxed NLP gave a solution where all the integer
+      variables have integral values. There is no need to
+      to continue the search.
+
+
+                           LOWER          LEVEL          UPPER         MARGINAL
+
+---- EQU OBJ                 .              .              .             1.0000      
+
+  OBJ  La función objetivo
+
+---- EQU ITERACIONCOCHEACEPTADO  Función de las horas 1 a la 24 que incluye la variable binaria COCHEACEPTADO(I)
+
+          LOWER          LEVEL          UPPER         MARGINAL
+
+1       -150.0000      -150.0000      -150.0000        -1.0000      
+2       -180.0000      -180.0000      -180.0000        -1.0000      
+3       -280.0000      -280.0000      -280.0000        -1.0000      
+4       -180.0000      -180.0000      -180.0000        -1.0000      
+5       -210.0000      -210.0000      -210.0000        -1.0000      
+6       -280.0000      -280.0000      -280.0000        -1.0000      
+7       -360.0000      -360.0000      -360.0000        -1.0000      
+8       -654.0000      -654.0000      -654.0000        -1.0000      
+9      -1024.0000     -1024.0000     -1024.0000        -1.0000      
+10      -970.0000      -970.0000      -970.0000        -1.0000      
+11      -965.0000      -965.0000      -965.0000        -1.0000      
+12      -774.0000      -774.0000      -774.0000        -1.0000      
+13      -529.9000      -529.9000      -529.9000        -1.0000      
+14      -333.0000      -333.0000      -333.0000        -1.0000      
+15      -333.0000      -333.0000      -333.0000        -1.0000      
+16      -604.8000      -604.8000      -604.8000        -1.0000      
+17      -860.0000      -860.0000      -860.0000        -1.0000      
+18     -1061.5000     -1061.5000     -1061.5000        -1.0000      
+19     -1776.0000     -1776.0000     -1776.0000        -1.0000      
+20     -1290.0000     -1290.0000     -1290.0000        -1.0000      
+21      -640.0000      -640.0000      -640.0000        -1.0000      
+22       -90.0000       -90.0000       -90.0000        -1.0000      
+23       -90.0000       -90.0000       -90.0000        -1.0000      
+24       -90.0000       -90.0000       -90.0000        -1.0000      
+
+---- EQU CAPACIDADMAX  Función que condiciona la carga de la batería a la capacidad
+
+          LOWER          LEVEL          UPPER         MARGINAL
+
+1         -INF           12.3970        24.0000          .          
+2         -INF           12.3970        24.0000          .          
+3         -INF           12.3970        24.0000          .          
+4         -INF           12.3970        24.0000          .          
+GAMS Rev 235  WEX-WEI 23.5.2 x86_64/MS Windows                                                    06/28/17 10:49:39 Page 11
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Solution Report     SOLVE progConCoches4 Using MINLP From line 175
+
+
+     EQU CAPACIDADMAX  Función que condiciona la carga de la batería a la capacidad
+
+          LOWER          LEVEL          UPPER         MARGINAL
+
+5         -INF           12.3970        24.0000          .          
+6         -INF           12.3970        24.0000          .          
+7         -INF           12.3970        24.0000          .          
+8         -INF           12.3970        24.0000          .          
+9         -INF            8.7170        24.0000          .          
+10        -INF            5.0370        24.0000          .          
+11        -INF            4.8000        24.0000          .          
+12        -INF            4.8000        24.0000          .          
+13        -INF            4.8000        24.0000          .          
+14        -INF            4.8000        24.0000          .          
+15        -INF            4.8000        24.0000          .          
+16        -INF            4.8000        24.0000          .          
+17        -INF            4.8000        24.0000          .          
+18        -INF            4.8000        24.0000          .          
+19        -INF            6.9600        24.0000          .          
+20        -INF           10.6400        24.0000          .          
+21        -INF           14.3200        24.0000          .          
+22        -INF           18.0000        24.0000          .          
+23        -INF           18.0000        24.0000          .          
+24        -INF           18.0000        24.0000          .          
+
+---- EQU CARGAMAX  Función que condiciona la carga  por hora máxima a 3.68 kWh
+
+          LOWER          LEVEL          UPPER         MARGINAL
+
+1         -INF             .             3.6800          .          
+2         -INF             .             3.6800          .          
+3         -INF             .             3.6800          .          
+4         -INF             .             3.6800          .          
+5         -INF             .             3.6800          .          
+6         -INF             .             3.6800          .          
+7         -INF             .             3.6800          .          
+8         -INF           -3.6800         3.6800          .          
+9         -INF           -3.6800         3.6800          .          
+10        -INF           -0.2370         3.6800          .          
+11        -INF             .             3.6800          .          
+12        -INF             .             3.6800          .          
+13        -INF             .             3.6800          .          
+14        -INF             .             3.6800          .          
+15        -INF             .             3.6800          .          
+16        -INF             .             3.6800          .          
+17        -INF             .             3.6800          .          
+18        -INF            2.1600         3.6800          .          
+19        -INF            3.6800         3.6800         EPS         
+20        -INF            3.6800         3.6800         EPS         
+21        -INF            3.6800         3.6800         EPS         
+22        -INF             .             3.6800          .          
+23        -INF             .             3.6800          .          
+24        -INF          -18.0000         3.6800          .          
+
+---- EQU DESCARGAMAX  Función que condiciona la descarga  por hora máxima a 3.68 kWh
+
+          LOWER          LEVEL          UPPER         MARGINAL
+
+1         -3.6800        12.3970        +INF             .          
+2         -3.6800          .            +INF             .          
+3         -3.6800          .            +INF             .          
+4         -3.6800          .            +INF             .          
+5         -3.6800          .            +INF             .          
+6         -3.6800          .            +INF             .          
+7         -3.6800          .            +INF             .          
+8         -3.6800          .            +INF             .          
+9         -3.6800        -3.6800        +INF            EPS         
+10        -3.6800        -3.6800        +INF            EPS         
+11        -3.6800        -0.2370        +INF             .          
+12        -3.6800          .            +INF             .          
+13        -3.6800          .            +INF             .          
+14        -3.6800          .            +INF             .          
+15        -3.6800          .            +INF             .          
+GAMS Rev 235  WEX-WEI 23.5.2 x86_64/MS Windows                                                    06/28/17 10:49:39 Page 12
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Solution Report     SOLVE progConCoches4 Using MINLP From line 175
+
+
+     EQU DESCARGAMAX  Función que condiciona la descarga  por hora máxima a 3.68 kWh
+
+          LOWER          LEVEL          UPPER         MARGINAL
+
+16        -3.6800          .            +INF             .          
+17        -3.6800          .            +INF             .          
+18        -3.6800          .            +INF             .          
+19        -3.6800         2.1600        +INF             .          
+20        -3.6800         3.6800        +INF             .          
+21        -3.6800         3.6800        +INF             .          
+22        -3.6800         3.6800        +INF             .          
+23        -3.6800          .            +INF             .          
+24        -3.6800          .            +INF             .          
+
+---- EQU CARGALIMITADA  Función que limita la descarga máxima de la batería a 4.8 kWh
+
+          LOWER          LEVEL          UPPER         MARGINAL
+
+1          4.8000        12.3970        +INF             .          
+2          4.8000        12.3970        +INF             .          
+3          4.8000        12.3970        +INF             .          
+4          4.8000        12.3970        +INF             .          
+5          4.8000        12.3970        +INF             .          
+6          4.8000        12.3970        +INF             .          
+7          4.8000        12.3970        +INF             .          
+8          4.8000        12.3970        +INF             .          
+9          4.8000         8.7170        +INF             .          
+10         4.8000         5.0370        +INF             .          
+11         4.8000         4.8000        +INF            EPS         
+12         4.8000         4.8000        +INF            EPS         
+13         4.8000         4.8000        +INF            EPS         
+14         4.8000         4.8000        +INF            EPS         
+15         4.8000         4.8000        +INF            EPS         
+16         4.8000         4.8000        +INF            EPS         
+17         4.8000         4.8000        +INF            EPS         
+18         4.8000         4.8000        +INF            EPS         
+19         4.8000         6.9600        +INF             .          
+20         4.8000        10.6400        +INF             .          
+21         4.8000        14.3200        +INF             .          
+22         4.8000        18.0000        +INF             .          
+23         4.8000        18.0000        +INF             .          
+24         4.8000        18.0000        +INF             .          
+
+---- EQU DINEROPOSITIVO  Nunca se puede ganar dinero vendiendo energía
+
+          LOWER          LEVEL          UPPER         MARGINAL
+
+1    1.0000000E-6       150.0000        +INF             .          
+2    1.0000000E-6       180.0000        +INF             .          
+3    1.0000000E-6       280.0000        +INF             .          
+4    1.0000000E-6       180.0000        +INF             .          
+5    1.0000000E-6       210.0000        +INF             .          
+6    1.0000000E-6       280.0000        +INF             .          
+7    1.0000000E-6       360.0000        +INF             .          
+8    1.0000000E-6       654.0000        +INF             .          
+9    1.0000000E-6      1024.0000        +INF             .          
+10   1.0000000E-6       970.0000        +INF             .          
+11   1.0000000E-6       965.0000        +INF             .          
+12   1.0000000E-6       774.0000        +INF             .          
+13   1.0000000E-6       529.9000        +INF             .          
+14   1.0000000E-6       333.0000        +INF             .          
+15   1.0000000E-6       333.0000        +INF             .          
+16   1.0000000E-6       604.8000        +INF             .          
+17   1.0000000E-6       860.0000        +INF             .          
+18   1.0000000E-6      1061.5000        +INF             .          
+19   1.0000000E-6      1776.0000        +INF             .          
+20   1.0000000E-6      1290.0000        +INF             .          
+21   1.0000000E-6       640.0000        +INF             .          
+22   1.0000000E-6        90.0000        +INF             .          
+23   1.0000000E-6        90.0000        +INF             .          
+24   1.0000000E-6        90.0000        +INF             .          
+GAMS Rev 235  WEX-WEI 23.5.2 x86_64/MS Windows                                                    06/28/17 10:49:39 Page 13
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Solution Report     SOLVE progConCoches4 Using MINLP From line 175
+
+
+---- EQU MAXGASTO  No superar los 450 kW
+
+          LOWER          LEVEL          UPPER         MARGINAL
+
+1         -INF          150.0000      1350.0000          .          
+2         -INF          180.0000      1350.0000          .          
+3         -INF          280.0000      1800.0000          .          
+4         -INF          180.0000      1350.0000          .          
+5         -INF          210.0000      1350.0000          .          
+6         -INF          280.0000      1800.0000          .          
+7         -INF          360.0000      1800.0000          .          
+8         -INF          654.0000      2700.0000          .          
+9         -INF         1024.0000      3600.0000          .          
+10        -INF          970.0000      4500.0000          .          
+11        -INF          965.0000      4500.0000          .          
+12        -INF          774.0000      4050.0000          .          
+13        -INF          529.9000      3150.0000          .          
+14        -INF          333.0000      2700.0000          .          
+15        -INF          333.0000      2700.0000          .          
+16        -INF          604.8000      3600.0000          .          
+17        -INF          860.0000      4500.0000          .          
+18        -INF         1061.5000      4950.0000          .          
+19        -INF         1776.0000      5400.0000          .          
+20        -INF         1290.0000      4500.0000          .          
+21        -INF          640.0000      3600.0000          .          
+22        -INF           90.0000      1350.0000          .          
+23        -INF           90.0000      1350.0000          .          
+24        -INF           90.0000      1350.0000          .          
+
+                           LOWER          LEVEL          UPPER         MARGINAL
+
+---- VAR F                 -INF        13725.2000        +INF             .          
+
+---- VAR CARGA  
+
+          LOWER          LEVEL          UPPER         MARGINAL
+
+1         12.3970        12.3970        12.3970         EPS         
+2         12.3970        12.3970        12.3970         EPS         
+3         12.3970        12.3970        12.3970         EPS         
+4         12.3970        12.3970        12.3970         EPS         
+5         12.3970        12.3970        12.3970         EPS         
+6         12.3970        12.3970        12.3970         EPS         
+7         12.3970        12.3970        12.3970         EPS         
+8         12.3970        12.3970        12.3970         EPS         
+9           .             8.7170        +INF             .          
+10          .             5.0370        +INF             .          
+11          .             4.8000        +INF             .          
+12          .             4.8000        +INF             .          
+13          .             4.8000        +INF             .          
+14          .             4.8000        +INF             .          
+15          .             4.8000        +INF             .          
+16          .             4.8000        +INF             .          
+17          .             4.8000        +INF             .          
+18          .             4.8000        +INF             .          
+19          .             6.9600        +INF             .          
+20          .            10.6400        +INF             .          
+21          .            14.3200        +INF             .          
+22        18.0000        18.0000        18.0000         EPS         
+23        18.0000        18.0000        18.0000         EPS         
+24        18.0000        18.0000        18.0000         EPS         
+
+---- VAR CONSUMOPORHORA  
+
+          LOWER          LEVEL          UPPER         MARGINAL
+
+1           .           150.0000        +INF             .          
+2           .           180.0000        +INF             .          
+3           .           280.0000        +INF             .          
+4           .           180.0000        +INF             .          
+5           .           210.0000        +INF             .          
+6           .           280.0000        +INF             .          
+7           .           360.0000        +INF             .          
+GAMS Rev 235  WEX-WEI 23.5.2 x86_64/MS Windows                                                    06/28/17 10:49:39 Page 14
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Solution Report     SOLVE progConCoches4 Using MINLP From line 175
+
+
+     VAR CONSUMOPORHORA  
+
+          LOWER          LEVEL          UPPER         MARGINAL
+
+8           .           654.0000        +INF             .          
+9           .          1024.0000        +INF             .          
+10          .           970.0000        +INF             .          
+11          .           965.0000        +INF             .          
+12          .           774.0000        +INF             .          
+13          .           529.9000        +INF             .          
+14          .           333.0000        +INF             .          
+15          .           333.0000        +INF             .          
+16          .           604.8000        +INF             .          
+17          .           860.0000        +INF             .          
+18          .          1061.5000        +INF             .          
+19          .          1776.0000        +INF             .          
+20          .          1290.0000        +INF             .          
+21          .           640.0000        +INF             .          
+22          .            90.0000        +INF             .          
+23          .            90.0000        +INF             .          
+24          .            90.0000        +INF             .          
+
+                           LOWER          LEVEL          UPPER         MARGINAL
+
+---- VAR COCHEACEP~          .              .             1.0000        34.5903      
+
+
+**** REPORT SUMMARY :        0     NONOPT
+                             0 INFEASIBLE
+                             0  UNBOUNDED
+                             0     ERRORS
+
+
+EXECUTION TIME       =        0.000 SECONDS      2 Mb  WEX235-235 Aug 17, 2010
+
+
+USER: Departamento de Ingenieria Civil               S091109:0516AN-WIN
+      Universidad Politecnica de Madrid                          DC6094
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      C:\Users\Ignacio\Documents\Universidad\4\SegundoSemestre\TFG\___AuxiliarParaToquetearSinCagarla\GAMS\GAMSProgMat
+           lab\Prog-v5MINLP\aaa.gms
+Output     C:\Users\Ignacio\Documents\Universidad\4\SegundoSemestre\TFG\___AuxiliarParaToquetearSinCagarla\GAMS\GAMSProgMat
+           lab\Prog-v5MINLP\aaa.lst

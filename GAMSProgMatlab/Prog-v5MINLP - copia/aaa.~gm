@@ -1,0 +1,198 @@
+SET
+         I HORAS /1*24/
+;
+
+PARAMETERS
+PERIODOESTACIONADO(I) PERIODO DE ESTANCIA  /1       0.
+                         2       0.
+                         3       0.
+                         4       0.
+                         5       0.
+                         6       0.
+                         7       0.
+                         8       1.
+                         9       1.
+                         10      1.
+                         11      1.
+                         12      1.
+                         13      1.
+                         14      1.
+                         15      1.
+                         16      1.
+                         17      1.
+                         18      1.
+                         19      1.
+                         20      1.
+                         21      1.
+                         22      1.
+                         23      0.
+                         24      0. /
+
+*Precio por KWh
+  PRECIOENERGIA(I) precio energía  /1       3.
+                         2       3.
+                         3       4.
+                         4       3.
+                         5       3.
+                         6       4.
+                         7       4.
+                         8       6.
+                         9       8.
+                         10      10.
+                         11      10.
+                         12      9.
+                         13      7.
+                         14      6.
+                         15      6.
+                         16      8.
+                         17      10.
+                         18      11.
+                         19      12.
+                         20      10.
+                         21      8.
+                         22      3.
+                         23      3.
+                         24      3. /
+
+*Producción fotovoltaica de la escuela / hora
+  PRODUCCIONFOTOVOLTAICA(I) p. fotovoltaica /1       0.
+                         2       0.
+                         3       0.
+                         4       0.
+                         5       0.
+                         6       0.
+                         7       0.
+                         8       1.
+                         9       2.
+                         10      3.
+                         11      3.5
+                         12      4.
+                         13      4.3
+                         14      4.5
+                         15      4.5
+                         16      4.4
+                         17      4.
+                         18      3.5
+                         19      2.
+                         20      1.
+                         21      0.
+                         22      0.
+                         23      0.
+                         24      0. /
+
+*Consumo de la escuela / hora
+  CONSUMOESCUELA(I) consumo escuela /1       50.
+                         2       60.
+                         3       70.
+                         4       60.
+                         5       70.
+                         6       70.
+                         7       90.
+                         8       110.
+                         9       130.
+                         10      100.
+                         11      100.
+                         12      90.
+                         13      80.
+                         14      60.
+                         15      60.
+                         16      80.
+                         17      90.
+                         18      100.
+                         19      150.
+                         20      130.
+                         21      80.
+                         22      30.
+                         23      30.
+                         24      30. /
+FOTOVOLTAICASUPERIOR(I)    Vector con un 1 en las posiciones en las que hay más producción que consumo
+;
+
+SCALAR
+ CARGAINICIAL            Carga inicial en kWh            /18/
+ HORASALIDA              Hora de salida                  /21/
+ HORALLEGADA             Hora de llegada                 /9/ ;
+
+SCALAR
+         CAPACIDAD               Capacidad de la batería en kWh  /24/
+         CARGAALASALIDA          Carga minima cuando se va       /18/
+         COUNTERLOOP             Contador para el loop           /0/
+         NUMCOCHES               Número de coches                /1/
+         RATIOCARGADESCARGA      KWh máximos en 1 hora           /3.68/
+         NODESCARGADEBAJODE      No se descarga por debajo de... /4.8/
+         MAXPOTENCIA             Máxima potencia contratada      /450/
+;
+
+
+*LOOP para completar el vector FOTOVOLTAICASUPERIOR. Tiene un 1 si la producción
+*fotovoltáica en la hora I es menor que el consumo, y un 0 en caso contrario
+LOOP(I, if ((CONSUMOESCUELA(I) + (NUMCOCHES*RATIOCARGADESCARGA)) < PRODUCCIONFOTOVOLTAICA(I) , FOTOVOLTAICASUPERIOR(I) = 0;
+        else FOTOVOLTAICASUPERIOR(I) = 1;);
+    );
+
+VARIABLES
+F;
+
+POSITIVE VARIABLES
+CARGA(I), CONSUMOPORHORA(I);
+
+BINARY VARIABLES
+COCHEACEPTADO;
+
+*fx para fijar el valor de una variable.
+*Este loop inicializa el valor de la carga con CARGAINICIAL.
+*Fija ese valor en todas las horas hasta que llega.
+LOOP(I, COUNTERLOOP = COUNTERLOOP+1;
+        if (COUNTERLOOP < HORALLEGADA, CARGA.fx(I) =  CARGAINICIAL;);
+        if (COUNTERLOOP = 24, COUNTERLOOP = 0;);
+);
+
+
+*lo para poner el límite inferior de una variable.
+*Este loop pone un límite inferior a la carga de salida. Aseguramos que el
+*coche se va con una carga mínima.
+*PARA SIMULACIONES 2.1 Y 3.1 CAMBIAR CARGAALASALIDA POR CARGAINICIAL(J).
+
+LOOP(I, COUNTERLOOP = COUNTERLOOP+1;
+        if (COUNTERLOOP >= HORASALIDA, if(CARGAINICIAL > CARGAALASALIDA, CARGA.fx(I) = CARGAINICIAL; else CARGA.fx(I) =  CARGAALASALIDA;); ;);
+        if (COUNTERLOOP = 24, COUNTERLOOP = 0;)
+;);
+
+
+EQUATIONS
+     OBJ                         La función objetivo
+     ITERACIONCOCHEACEPTADO(I)   Función de las horas 1 a la 24 que incluye la variable binaria COCHEACEPTADO(I)
+     CAPACIDADMAX(I)             Función que condiciona la carga de la batería a la capacidad
+     CARGAMAX(I)                 Función que condiciona la carga  por hora máxima a 3.68 kWh
+     DESCARGAMAX(I)              Función que condiciona la descarga  por hora máxima a 3.68 kWh
+     NODESCARGADEBAJO(I)         Función que no permite descarga por debajo de la carga con la que llega el coche
+     CARGALIMITADA(I)            Función que limita la descarga máxima de la batería a 4.8 kWh
+     DINEROPOSITIVO(I)           Nunca se puede ganar dinero vendiendo energía
+     MAXGASTO(I)                 No superar los 450 kW
+;
+
+OBJ ..                           F  =E=  sum(I, CONSUMOPORHORA(I));
+
+ITERACIONCOCHEACEPTADO(I) ..     FOTOVOLTAICASUPERIOR(I)*(PRECIOENERGIA(I)*[CONSUMOESCUELA(I) - PRODUCCIONFOTOVOLTAICA(I) + COCHEACEPTADO*[[CARGA(I) - CARGA(I-1)]*PERIODOESTACIONADO(I)]]) =E=  CONSUMOPORHORA(I);
+
+CAPACIDADMAX(I) ..               CARGA(I) =L= CAPACIDAD;
+
+CARGAMAX(I) ..                   CARGA(I+1) - CARGA(I) =L= RATIOCARGADESCARGA;
+
+DESCARGAMAX(I) ..                CARGA(I) - CARGA(I-1) =G= -RATIOCARGADESCARGA;
+
+NODESCARGADEBAJO(I) ..           CARGA(I) =G= CARGAINICIAL;
+
+*
+CARGALIMITADA(I) ..              CARGA(I) =G= NODESCARGADEBAJODE;
+
+DINEROPOSITIVO(I) ..             CONSUMOPORHORA(I) =G= 0.000001;
+
+MAXGASTO(I) ..                   CONSUMOPORHORA(I) =L= PRECIOENERGIA(I)*450;
+;
+
+MODEL progConCoches4 /OBJ, ITERACIONCOCHEACEPTADO, CAPACIDADMAX, CARGAMAX, DESCARGAMAX, CARGALIMITADA, DINEROPOSITIVO, MAXGASTO/ ;
+MODEL progConCoches5 /OBJ, ITERACIONCOCHEACEPTADO, CAPACIDADMAX, CARGAMAX, DESCARGAMAX, NODESCARGADEBAJO, CARGALIMITADA, DINEROPOSITIVO, MAXGASTO/ ;
+
+SOLVE progConCoches4 using MINLP minimizing F;
+*SOLVE progConCoches5 using MINLP minimizing F;

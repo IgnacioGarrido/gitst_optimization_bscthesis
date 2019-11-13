@@ -1,0 +1,19 @@
+[PROJECT]
+
+[RP:UNTITLED_1]
+1=
+
+[OPENWINDOW_1]
+MAXIM=0
+TOP=50
+LEFT=50
+HEIGHT=400
+WIDTH=400
+
+[RP:PROG-V5]
+1=
+
+[MRUFILES]
+1=C:\Users\Ignacio\Documents\Universidad\4\SegundoSemestre\TFG\GAMS\GAMS - Prog\Prog-v5\Prog-v5.gms
+2=C:\Users\Ignacio\Documents\Universidad\4\SegundoSemestre\TFG\GAMS\GAMS - Prog\Prog-v5\Prog-v5.lst
+3=C:\Users\Ignacio\Documents\Universidad\4\SegundoSemestre\TFG\GAMS\GAMS - Prog\Prog-v5\Untitled_1.gms

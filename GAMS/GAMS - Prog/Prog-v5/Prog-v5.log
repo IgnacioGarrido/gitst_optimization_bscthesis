@@ -1,0 +1,98 @@
+
+--- Job Prog-v5.gms Start 05/07/17 19:51:07 WEX-WEI 23.5.2 x86_64/MS Windows     
+GAMS Rev 235  Copyright (C) 1987-2010 GAMS Development. All rights reserved
+Licensee: Departamento de Ingenieria Civil               S091109:0516AN-WIN
+          Universidad Politecnica de Madrid                          DC6094
+          License for teaching and research at degree granting institutions
+--- Starting compilation
+--- Prog-v5.gms(263) 3 Mb
+--- Starting execution: elapsed 0:00:00.017
+--- Prog-v5.gms(205) 4 Mb
+--- Generating LP model progSinCoches
+--- Prog-v5.gms(256) 4 Mb
+---   25 rows  25 columns  49 non-zeroes
+--- Prog-v5.gms(256) 4 Mb
+--- Executing CPLEX: elapsed 0:00:00.030
+--- Prog-v5.gms(256) 4 Mb
+
+IBM ILOG CPLEX   Aug 18, 2010 23.5.2 WEX 19143.19383 WEI x86_64/MS Windows
+Cplex 12.2.0.0, GAMS Link 34 
+
+Reading data...
+Starting Cplex...
+Tried aggregator 1 time.
+LP Presolve eliminated 25 rows and 25 columns.
+All rows and columns eliminated.
+Presolve time =    0.00 sec.
+LP status(1): optimal
+
+Optimal solution found.
+Objective :       13725.200000
+
+--- Restarting execution
+--- Prog-v5.gms(256) 2 Mb
+--- Reading solution for model progSinCoches
+--- Prog-v5.gms(256) 2 Mb
+--- Executing after solve: elapsed 0:00:00.298
+--- Generating LP model progConCoches2
+--- Prog-v5.gms(257) 3 Mb
+---   385 rows  145 columns  739 non-zeroes
+--- Prog-v5.gms(257) 3 Mb
+--- Executing CPLEX: elapsed 0:00:00.326
+--- Prog-v5.gms(257) 3 Mb
+
+IBM ILOG CPLEX   Aug 18, 2010 23.5.2 WEX 19143.19383 WEI x86_64/MS Windows
+Cplex 12.2.0.0, GAMS Link 34 
+GAMS/Cplex licensed for continuous and discrete problems.
+
+Reading data...
+Starting Cplex...
+Tried aggregator 1 time.
+LP Presolve eliminated 238 rows and 64 columns.
+Reduced LP has 147 rows, 81 columns, and 334 nonzeros.
+Presolve time =    0.00 sec.
+Initializing dual steep norms . . .
+
+Iteration log . . .
+Iteration:     1   Dual objective     =         10587.940000
+LP status(1): optimal
+
+Optimal solution found.
+Objective :       13446.120000
+
+--- Restarting execution
+--- Prog-v5.gms(257) 2 Mb
+--- Reading solution for model progConCoches2
+--- Prog-v5.gms(257) 2 Mb
+--- Executing after solve: elapsed 0:00:00.587
+--- Generating LP model progConCoches3
+--- Prog-v5.gms(258) 3 Mb
+---   505 rows  145 columns  859 non-zeroes
+--- Prog-v5.gms(258) 3 Mb
+--- Executing CPLEX: elapsed 0:00:00.598
+--- Prog-v5.gms(258) 3 Mb
+
+IBM ILOG CPLEX   Aug 18, 2010 23.5.2 WEX 19143.19383 WEI x86_64/MS Windows
+Cplex 12.2.0.0, GAMS Link 34 
+GAMS/Cplex licensed for continuous and discrete problems.
+
+Reading data...
+Starting Cplex...
+Tried aggregator 1 time.
+LP Presolve eliminated 400 rows and 88 columns.
+Reduced LP has 105 rows, 57 columns, and 210 nonzeros.
+Presolve time =    0.00 sec.
+
+Iteration log . . .
+Iteration:     1   Dual objective     =         13608.840000
+LP status(1): optimal
+
+Optimal solution found.
+Objective :       13618.440000
+
+--- Restarting execution
+--- Prog-v5.gms(258) 2 Mb
+--- Reading solution for model progConCoches3
+--- Prog-v5.gms(258) 2 Mb
+*** Status: Normal completion
+--- Job Prog-v5.gms Stop 05/07/17 19:51:08 elapsed 0:00:00.828

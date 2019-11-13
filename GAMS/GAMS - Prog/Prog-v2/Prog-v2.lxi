@@ -1,0 +1,41 @@
+B 2 C o m p i l a t i o n
+B 211 E x e c u t i o n
+I 215 CARGAMINIMAOUT
+B 224 Equation Listing    SOLVE progSinCoches Using LP From line 189
+D 225 OBJ
+D 237 COSTESINCOCHES
+B 251 Column Listing      SOLVE progSinCoches Using LP From line 189
+E 252 CH
+E 272 F
+B 281 Model Statistics    SOLVE progSinCoches Using LP From line 189
+B 297 Solution Report     SOLVE progSinCoches Using LP From line 189
+F 323 OBJ
+F 332 COSTESINCOCHES
+G 356 CH
+G 385 F
+B 396 Equation Listing    SOLVE progConCoches Using LP From line 190
+D 397 OBJ
+D 409 ITERACION
+D 420 ITERACIONPRIMERA
+D 425 CARGAINI
+D 430 CAPACIDADMAX
+D 442 CARGAMAX
+D 453 DESCARGAMAX
+D 465 CARGASALIDA
+B 479 Column Listing      SOLVE progConCoches Using LP From line 190
+E 480 CARGA
+E 516 CH
+E 535 F
+B 544 Model Statistics    SOLVE progConCoches Using LP From line 190
+B 560 Solution Report     SOLVE progConCoches Using LP From line 190
+F 586 OBJ
+F 594 ITERACION
+F 620 ITERACIONPRIMERA
+F 621 CARGAINI
+F 631 CAPACIDADMAX
+F 659 CARGAMAX
+F 689 DESCARGAMAX
+F 719 CARGASALIDA
+G 743 CARGA
+G 772 CH
+G 801 F

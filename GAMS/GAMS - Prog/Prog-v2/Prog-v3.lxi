@@ -1,0 +1,33 @@
+B 2 C o m p i l a t i o n
+B 232 Equation Listing    SOLVE progSinCoches Using LP From line 213
+D 233 OBJ
+D 255 COSTESINCOCHES
+B 269 Column Listing      SOLVE progSinCoches Using LP From line 213
+E 270 F
+E 278 CONSUMOPORHORA
+B 299 Model Statistics    SOLVE progSinCoches Using LP From line 213
+B 315 Solution Report     SOLVE progSinCoches Using LP From line 213
+F 341 OBJ
+F 350 COSTESINCOCHES
+G 374 F
+G 378 CONSUMOPORHORA
+B 414 Equation Listing    SOLVE progConCoches Using LP From line 214
+D 415 OBJ
+D 437 ITERACION
+D 448 CAPACIDADMAX
+D 460 CARGAMAX
+D 471 DESCARGAMAX
+B 485 Column Listing      SOLVE progConCoches Using LP From line 214
+E 486 F
+E 494 CARGA
+E 521 CONSUMOPORHORA
+B 542 Model Statistics    SOLVE progConCoches Using LP From line 214
+B 558 Solution Report     SOLVE progConCoches Using LP From line 214
+F 584 OBJ
+F 592 ITERACION
+F 622 CAPACIDADMAX
+F 651 CARGAMAX
+F 681 DESCARGAMAX
+G 705 F
+G 709 CARGA
+G 738 CONSUMOPORHORA

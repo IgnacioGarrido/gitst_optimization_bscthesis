@@ -1,0 +1,66 @@
+
+--- Job Prog-v2.gms Start 05/03/17 19:31:03 WEX-WEI 23.5.2 x86_64/MS Windows     
+GAMS Rev 235  Copyright (C) 1987-2010 GAMS Development. All rights reserved
+Licensee: Departamento de Ingenieria Civil               S091109:0516AN-WIN
+          Universidad Politecnica de Madrid                          DC6094
+          License for teaching and research at degree granting institutions
+--- Starting compilation
+--- Prog-v2.gms(191) 3 Mb
+--- Starting execution: elapsed 0:00:00.010
+--- Prog-v2.gms(146) 4 Mb
+--- Generating LP model progSinCoches
+--- Prog-v2.gms(189) 4 Mb
+---   25 rows  25 columns  49 non-zeroes
+--- Prog-v2.gms(189) 4 Mb
+--- Executing CPLEX: elapsed 0:00:00.019
+--- Prog-v2.gms(189) 4 Mb
+
+IBM ILOG CPLEX   Aug 18, 2010 23.5.2 WEX 19143.19383 WEI x86_64/MS Windows
+Cplex 12.2.0.0, GAMS Link 34 
+
+Reading data...
+Starting Cplex...
+Tried aggregator 1 time.
+LP Presolve eliminated 25 rows and 25 columns.
+All rows and columns eliminated.
+Presolve time =    0.00 sec.
+LP status(1): optimal
+
+Optimal solution found.
+Objective :       14080.000000
+
+--- Restarting execution
+--- Prog-v2.gms(189) 2 Mb
+--- Reading solution for model progSinCoches
+--- Prog-v2.gms(189) 2 Mb
+--- Executing after solve: elapsed 0:00:00.374
+--- Generating LP model progConCoches
+--- Prog-v2.gms(190) 3 Mb
+---   121 rows  49 columns  237 non-zeroes
+--- Prog-v2.gms(190) 3 Mb
+--- Executing CPLEX: elapsed 0:00:00.382
+--- Prog-v2.gms(190) 3 Mb
+
+IBM ILOG CPLEX   Aug 18, 2010 23.5.2 WEX 19143.19383 WEI x86_64/MS Windows
+Cplex 12.2.0.0, GAMS Link 34 
+
+Reading data...
+Starting Cplex...
+Tried aggregator 1 time.
+LP Presolve eliminated 77 rows and 26 columns.
+Reduced LP has 44 rows, 23 columns, and 88 nonzeros.
+Presolve time =    0.00 sec.
+
+Iteration log . . .
+Iteration:     1   Dual objective     =         13529.520000
+LP status(1): optimal
+
+Optimal solution found.
+Objective :       13642.320000
+
+--- Restarting execution
+--- Prog-v2.gms(190) 2 Mb
+--- Reading solution for model progConCoches
+--- Prog-v2.gms(190) 2 Mb
+*** Status: Normal completion
+--- Job Prog-v2.gms Stop 05/03/17 19:31:04 elapsed 0:00:00.781

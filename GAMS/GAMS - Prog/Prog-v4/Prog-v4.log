@@ -1,0 +1,68 @@
+
+--- Job Prog-v4.gms Start 05/03/17 20:32:31 WEX-WEI 23.5.2 x86_64/MS Windows     
+GAMS Rev 235  Copyright (C) 1987-2010 GAMS Development. All rights reserved
+Licensee: Departamento de Ingenieria Civil               S091109:0516AN-WIN
+          Universidad Politecnica de Madrid                          DC6094
+          License for teaching and research at degree granting institutions
+--- Starting compilation
+--- Prog-v4.gms(206) 3 Mb
+--- Starting execution: elapsed 0:00:00.011
+--- Prog-v4.gms(173) 4 Mb
+--- Generating LP model progSinCoches
+--- Prog-v4.gms(204) 4 Mb
+---   25 rows  25 columns  49 non-zeroes
+--- Prog-v4.gms(204) 4 Mb
+--- Executing CPLEX: elapsed 0:00:00.021
+--- Prog-v4.gms(204) 4 Mb
+
+IBM ILOG CPLEX   Aug 18, 2010 23.5.2 WEX 19143.19383 WEI x86_64/MS Windows
+Cplex 12.2.0.0, GAMS Link 34 
+
+Reading data...
+Starting Cplex...
+Tried aggregator 1 time.
+LP Presolve eliminated 25 rows and 25 columns.
+All rows and columns eliminated.
+Presolve time =    0.00 sec.
+LP status(1): optimal
+
+Optimal solution found.
+Objective :       13725.200000
+
+--- Restarting execution
+--- Prog-v4.gms(204) 2 Mb
+--- Reading solution for model progSinCoches
+--- Prog-v4.gms(204) 2 Mb
+--- Executing after solve: elapsed 0:00:00.389
+--- Generating LP model progConCoches
+--- Prog-v4.gms(205) 3 Mb
+---   385 rows  145 columns  739 non-zeroes
+--- Prog-v4.gms(205) 3 Mb
+--- Executing CPLEX: elapsed 0:00:00.399
+--- Prog-v4.gms(205) 3 Mb
+
+IBM ILOG CPLEX   Aug 18, 2010 23.5.2 WEX 19143.19383 WEI x86_64/MS Windows
+Cplex 12.2.0.0, GAMS Link 34 
+GAMS/Cplex licensed for continuous and discrete problems.
+
+Reading data...
+Starting Cplex...
+Tried aggregator 1 time.
+LP Presolve eliminated 238 rows and 64 columns.
+Reduced LP has 147 rows, 81 columns, and 334 nonzeros.
+Presolve time =    0.00 sec.
+Initializing dual steep norms . . .
+
+Iteration log . . .
+Iteration:     1   Dual objective     =         10587.940000
+LP status(1): optimal
+
+Optimal solution found.
+Objective :       13446.120000
+
+--- Restarting execution
+--- Prog-v4.gms(205) 2 Mb
+--- Reading solution for model progConCoches
+--- Prog-v4.gms(205) 2 Mb
+*** Status: Normal completion
+--- Job Prog-v4.gms Stop 05/03/17 20:32:32 elapsed 0:00:00.743

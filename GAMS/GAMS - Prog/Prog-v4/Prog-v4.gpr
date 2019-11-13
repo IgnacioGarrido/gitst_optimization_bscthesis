@@ -1,0 +1,32 @@
+[PROJECT]
+
+[RP:UNTITLED_1]
+1=
+
+[RP:PROG-V2]
+1=
+
+[RP:PROG-V1]
+1=
+
+[RP:PROG-V3]
+1=
+
+[OPENWINDOW_1]
+MAXIM=1
+TOP=50
+LEFT=50
+HEIGHT=400
+WIDTH=400
+
+[RP:PROG-V4]
+1=
+
+[MRUFILES]
+1=C:\Users\Ignacio\Documents\Universidad\4\SegundoSemestre\TFG\GAMS\GAMS - Prog\Prog-v4\Prog-v4.gms
+2=C:\Users\Ignacio\Documents\Universidad\4\SegundoSemestre\TFG\GAMS\GAMS - Prog\Prog-v4\Prog-v4.lst
+3=C:\Users\Ignacio\Documents\Universidad\4\SegundoSemestre\TFG\GAMS\GAMS - Prog\Prog-v3\Prog-v3.gms
+4=C:\Users\Ignacio\Documents\Universidad\4\SegundoSemestre\TFG\GAMS\GAMS - Prog\Prog-v1\Prog-v1.gms
+5=C:\Users\Ignacio\Documents\Universidad\4\SegundoSemestre\TFG\GAMS\GAMS - Prog\Prog-v3\Prog-v3.lst
+6=C:\Users\Ignacio\Documents\Universidad\4\SegundoSemestre\TFG\GAMS\GAMS - Prog\Prog-v2\Prog-v2.gms
+7=C:\Users\Ignacio\Documents\Universidad\4\SegundoSemestre\TFG\GAMS\GAMS - Prog\Prog-v3\Untitled_1.gms

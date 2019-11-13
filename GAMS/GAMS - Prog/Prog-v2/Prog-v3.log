@@ -1,0 +1,66 @@
+
+--- Job Prog-v3.gms Start 05/03/17 19:32:04 WEX-WEI 23.5.2 x86_64/MS Windows     
+GAMS Rev 235  Copyright (C) 1987-2010 GAMS Development. All rights reserved
+Licensee: Departamento de Ingenieria Civil               S091109:0516AN-WIN
+          Universidad Politecnica de Madrid                          DC6094
+          License for teaching and research at degree granting institutions
+--- Starting compilation
+--- Prog-v3.gms(215) 3 Mb
+--- Starting execution: elapsed 0:00:00.000
+--- Prog-v3.gms(183) 4 Mb
+--- Generating LP model progSinCoches
+--- Prog-v3.gms(213) 4 Mb
+---   25 rows  25 columns  49 non-zeroes
+--- Prog-v3.gms(213) 4 Mb
+--- Executing CPLEX: elapsed 0:00:00.016
+--- Prog-v3.gms(213) 4 Mb
+
+IBM ILOG CPLEX   Aug 18, 2010 23.5.2 WEX 19143.19383 WEI x86_64/MS Windows
+Cplex 12.2.0.0, GAMS Link 34 
+
+Reading data...
+Starting Cplex...
+Tried aggregator 1 time.
+LP Presolve eliminated 25 rows and 25 columns.
+All rows and columns eliminated.
+Presolve time =    0.02 sec.
+LP status(1): optimal
+
+Optimal solution found.
+Objective :       13725.200000
+
+--- Restarting execution
+--- Prog-v3.gms(213) 2 Mb
+--- Reading solution for model progSinCoches
+--- Prog-v3.gms(213) 2 Mb
+--- Executing after solve: elapsed 0:00:00.401
+--- Generating LP model progConCoches
+--- Prog-v3.gms(214) 3 Mb
+---   97 rows  49 columns  191 non-zeroes
+--- Prog-v3.gms(214) 3 Mb
+--- Executing CPLEX: elapsed 0:00:00.401
+--- Prog-v3.gms(214) 3 Mb
+
+IBM ILOG CPLEX   Aug 18, 2010 23.5.2 WEX 19143.19383 WEI x86_64/MS Windows
+Cplex 12.2.0.0, GAMS Link 34 
+
+Reading data...
+Starting Cplex...
+Tried aggregator 1 time.
+LP Presolve eliminated 69 rows and 34 columns.
+Reduced LP has 28 rows, 15 columns, and 56 nonzeros.
+Presolve time =    0.00 sec.
+
+Iteration log . . .
+Iteration:     1   Dual objective     =         13611.200000
+LP status(1): optimal
+
+Optimal solution found.
+Objective :       13694.680000
+
+--- Restarting execution
+--- Prog-v3.gms(214) 2 Mb
+--- Reading solution for model progConCoches
+--- Prog-v3.gms(214) 2 Mb
+*** Status: Normal completion
+--- Job Prog-v3.gms Stop 05/03/17 19:32:04 elapsed 0:00:00.748

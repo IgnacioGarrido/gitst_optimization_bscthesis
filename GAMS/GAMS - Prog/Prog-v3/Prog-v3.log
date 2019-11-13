@@ -1,0 +1,72 @@
+
+--- Job Prog-v3.gms Start 05/03/17 19:26:19 WEX-WEI 23.5.2 x86_64/MS Windows     
+GAMS Rev 235  Copyright (C) 1987-2010 GAMS Development. All rights reserved
+Licensee: Departamento de Ingenieria Civil               S091109:0516AN-WIN
+          Universidad Politecnica de Madrid                          DC6094
+          License for teaching and research at degree granting institutions
+--- Starting compilation
+--- Prog-v3.gms(215) 3 Mb
+--- Starting execution: elapsed 0:00:00.010
+--- Prog-v3.gms(183) 4 Mb
+--- Generating LP model progSinCoches
+--- Prog-v3.gms(213) 4 Mb
+---   25 rows  25 columns  49 non-zeroes
+--- Prog-v3.gms(213) 4 Mb
+--- Executing CPLEX: elapsed 0:00:00.021
+--- Prog-v3.gms(213) 4 Mb
+
+IBM ILOG CPLEX   Aug 18, 2010 23.5.2 WEX 19143.19383 WEI x86_64/MS Windows
+Cplex 12.2.0.0, GAMS Link 34 
+
+Reading data...
+Starting Cplex...
+Tried aggregator 1 time.
+LP Presolve eliminated 25 rows and 25 columns.
+All rows and columns eliminated.
+Presolve time =    0.00 sec.
+LP status(1): optimal
+
+Optimal solution found.
+Objective :       13725.200000
+
+--- Restarting execution
+--- Prog-v3.gms(213) 2 Mb
+--- Reading solution for model progSinCoches
+--- Prog-v3.gms(213) 2 Mb
+--- Executing after solve: elapsed 0:00:00.402
+--- Generating LP model progConCoches
+--- Prog-v3.gms(214) 3 Mb
+---   97 rows  49 columns  191 non-zeroes
+--- Prog-v3.gms(214) 3 Mb
+--- Executing CPLEX: elapsed 0:00:00.409
+--- Prog-v3.gms(214) 3 Mb
+
+IBM ILOG CPLEX   Aug 18, 2010 23.5.2 WEX 19143.19383 WEI x86_64/MS Windows
+Cplex 12.2.0.0, GAMS Link 34 
+
+Reading data...
+Starting Cplex...
+Infeasibility row 'CARGAMAX(1)':  0 <= -11.32.
+Presolve time =    0.00 sec.
+LP status(4): unbounded or infeasible
+Presolve found the problem infeasible or unbounded.
+Rerunning with presolve turned off.
+Initializing dual steep norms . . .
+
+Iteration log . . .
+Iteration:     1   Scaled dual infeas =             0.000000
+Iteration:     2   Dual objective     =           654.000000
+LP status(3): infeasible
+Dual infeasible or unbounded. Switching to primal to aid diagnosis.
+
+Iteration log . . .
+Iteration:     1    Scaled infeas =            26.880000
+LP status(3): infeasible
+
+Model has been proven infeasible.
+--- Restarting execution
+--- Prog-v3.gms(214) 2 Mb
+--- Reading solution for model progConCoches
+--- Prog-v3.gms(214) 2 Mb
+*** Status: Normal completion
+--- Job Prog-v3.gms Stop 05/03/17 19:26:19 elapsed 0:00:00.869

@@ -1,0 +1,214 @@
+GAMS Rev 235  WEX-WEI 23.5.2 x86_64/MS Windows                                                     06/27/17 19:53:31 Page 1
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+   1  SET
+   2           I HORAS /1*24/;
+   3   
+   4  PARAMETERS  CARGAINICIAL , HORASALIDA , HORALLEGADA ;
+   5  PARAMETER PERIODOESTACIONADO(I) ;
+   6   
+   7   
+   8  *Parámetros inventados...Falta sacar los valores reales
+   9  PARAMETERS
+  10  *Precio por KWh
+  11    PRECIOENERGIA(I) precio energía  /1       3.
+  12                           2       3.
+  13                           3       4.
+  14                           4       3.
+  15                           5       3.
+  16                           6       4.
+  17                           7       4.
+  18                           8       6.
+  19                           9       8.
+  20                           10      10.
+  21                           11      10.
+  22                           12      9.
+  23                           13      7.
+  24                           14      6.
+  25                           15      6.
+  26                           16      8.
+  27                           17      10.
+  28                           18      11.
+  29                           19      12.
+  30                           20      10.
+  31                           21      8.
+  32                           22      3.
+  33                           23      3.
+  34                           24      3. /
+  35   
+  36  *Producción fotovoltaica de la escuela / hora
+  37    PRODUCCIONFOTOVOLTAICA(I) p. fotovoltaica /1       0.
+  38                           2       0.
+  39                           3       0.
+  40                           4       0.
+  41                           5       0.
+  42                           6       0.
+  43                           7       0.
+  44                           8       1.
+  45                           9       2.
+  46                           10      3.
+  47                           11      3.5
+  48                           12      4.
+  49                           13      4.3
+  50                           14      4.5
+  51                           15      4.5
+  52                           16      4.4
+  53                           17      4.
+  54                           18      3.5
+  55                           19      2.
+  56                           20      1.
+  57                           21      0.
+  58                           22      0.
+  59                           23      0.
+  60                           24      0. /
+  61   
+  62  *Consumo de la escuela / hora
+  63    CONSUMOESCUELA(I) consumo escuela /1       50.
+  64                           2       60.
+  65                           3       70.
+  66                           4       60.
+  67                           5       70.
+  68                           6       70.
+  69                           7       90.
+  70                           8       110.
+  71                           9       130.
+  72                           10      100.
+  73                           11      100.
+GAMS Rev 235  WEX-WEI 23.5.2 x86_64/MS Windows                                                     06/27/17 19:53:31 Page 2
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+  74                           12      90.
+  75                           13      80.
+  76                           14      60.
+  77                           15      60.
+  78                           16      80.
+  79                           17      90.
+  80                           18      100.
+  81                           19      150.
+  82                           20      130.
+  83                           21      80.
+  84                           22      30.
+  85                           23      30.
+  86                           24      30. /
+  87   FOTOVOLTAICASUPERIOR(I)    Vector con un 1 en las posiciones en las que hay más producción que consumo
+  88  ;
+  89   
+  90   
+  91  SCALAR
+  92           CAPACIDAD               Capacidad de la batería en kWh  /24/
+  93           CARGAALASALIDA          Carga minima cuando se va       /18/
+  94           COUNTERLOOP             Contador para el loop           /0/
+  95           NUMCOCHES               Número de coches                /1/
+  96           RATIOCARGADESCARGA      KWh máximos en 1 hora           /3.68/;
+  97   
+  98  *LOOP para completar el vector FOTOVOLTAICASUPERIOR. Tiene un 1 si la producción
+  99  *fotovoltáica en la hora I es menor que el consumo, y un 0 en caso contrario
+ 100  LOOP(I, if ((CONSUMOESCUELA(I) + (NUMCOCHES*RATIOCARGADESCARGA)) < PRODUCCIONFOTOVOLTAICA(I) , FOTOVOLTAICASUPERIOR(I
+      ) = 0;
+ 101          else FOTOVOLTAICASUPERIOR(I) = 1;);
+ 102      );
+ 103   
+ 104  VARIABLES
+ 105  F;
+ 106   
+ 107  POSITIVE VARIABLES
+ 108  CARGA(I), CONSUMOPORHORA(I);
+ 109   
+ 110  BINARY VARIABLES
+ 111  COCHEACEPTADO;
+ 112   
+ 113  *fx para fijar el valor de una variable.
+ 114  *Este loop inicializa el valor de la carga con CARGAINICIAL.
+ 115  *Fija ese valor en todas las horas hasta que llega.
+ 116  LOOP(I, COUNTERLOOP = COUNTERLOOP+1;
+ 117          if (COUNTERLOOP <= HORALLEGADA, CARGA.fx(I) =  CARGAINICIAL;);
+****                                       $141                         $141
+ 118          if (COUNTERLOOP = 24, COUNTERLOOP = 0;);
+ 119      );
+ 120   
+ 121  *lo para poner el límite inferior de una variable.
+ 122  *Este loop pone un límite inferior a la carga de salida. Aseguramos que el
+ 123  *coche se va con una carga mínima.
+ 124  *PARA SIMULACIONES 2.1 Y 3.1 CAMBIAR CARGAALASALIDA POR CARGAINICIAL(J).
+ 125  LOOP(I, COUNTERLOOP = COUNTERLOOP+1;
+ 126          if (COUNTERLOOP >= HORASALIDA, CARGA.fx(I) =  CARGAALASALIDA;);
+****                                      $141
+ 127          if (COUNTERLOOP = 24, COUNTERLOOP = 0;);
+ 128      );
+ 129   
+ 130  EQUATIONS
+ 131       OBJ                         La función objetivo
+ 132       ITERACIONCOCHEACEPTADO(I)   Función de las horas 1 a la 24 que incluye la variable binaria COCHEACEPTADO(I)
+ 133       CAPACIDADMAX(I)             Función que condiciona la carga de la batería a la capacidad
+ 134       CARGAMAX(I)                 Función que condiciona la carga  por hora máxima a 3.68 kWh
+ 135       DESCARGAMAX(I)              Función que condiciona la descarga  por hora máxima a 3.68 kWh
+ 136       NODESCARGADEBAJO(I)         Función que no permite descarga por debajo de la carga con la que llega el coche
+ 137  ;
+ 138   
+ 139  OBJ ..                           F  =E=  sum(I, CONSUMOPORHORA(I));
+ 140   
+ 141  ITERACIONCOCHEACEPTADO(I) ..     FOTOVOLTAICASUPERIOR(I)*(PRECIOENERGIA(I)*[CONSUMOESCUELA(I) - PRODUCCIONFOTOVOLTAIC
+      A(I) + sum(J,COCHEACEPTADO(J)*[[CARGA(J,I) - CARGA(J,I-1)]*PERIODOESTACIONADO(J,I)])]) =E=  CONSUMOPORHORA(I) ;
+****             $120,340                    $171,148     $171$148                   $171,148
+GAMS Rev 235  WEX-WEI 23.5.2 x86_64/MS Windows                                                     06/27/17 19:53:31 Page 3
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+C o m p i l a t i o n
+
+
+ 142   
+ 143  CAPACIDADMAX(I) ..               CARGA(I) =L= CAPACIDAD;
+ 144   
+ 145  CARGAMAX(I) ..                   CARGA(I+1) - CARGA(I) =L= RATIOCARGADESCARGA;
+ 146   
+ 147  DESCARGAMAX(I) ..                CARGA(I) - CARGA(I-1) =G= -RATIOCARGADESCARGA;
+ 148   
+ 149  NODESCARGADEBAJO(I) ..           CARGA(I) =G= CARGAINICIAL(J);
+****                                                              $149,148
+ 150   
+ 151  MODEL progConCoches4 /OBJ, ITERACIONCOCHEACEPTADO, CAPACIDADMAX, CARGAMAX, DESCARGAMAX/ ;
+ 152  MODEL progConCoches5 /OBJ, ITERACIONCOCHEACEPTADO, CAPACIDADMAX, CARGAMAX, DESCARGAMAX, NODESCARGADEBAJO/ ;
+ 153   
+ 154  SOLVE progConCoches4 using MINLP minimizing F;
+****                                               $257
+ 155  *SOLVE progConCoches5 using MINLP minimizing F;
+GAMS Rev 235  WEX-WEI 23.5.2 x86_64/MS Windows                                                     06/27/17 19:53:31 Page 4
+G e n e r a l   A l g e b r a i c   M o d e l i n g   S y s t e m
+Error Messages
+
+
+120  Unknown identifier entered as set
+141  Symbol neither initialized nor assigned
+        A wild shot: You may have spurious commas in the explanatory
+        text of a declaration. Check symbol reference list.
+148  Dimension different - The symbol is referenced with more/less
+        indices as declared
+149  Uncontrolled set entered as constant
+171  Domain violation for set
+257  Solve statement not checked because of previous errors
+340  A label/element with the same name exist. You may have forgotten
+        to quote a label/element reference. For example,
+        set i / a,b,c /; parameter x(i); x('a') = 10;
+
+**** 14 ERROR(S)   0 WARNING(S)
+
+
+COMPILATION TIME     =        0.016 SECONDS      3 Mb  WEX235-235 Aug 17, 2010
+
+
+USER: Departamento de Ingenieria Civil               S091109:0516AN-WIN
+      Universidad Politecnica de Madrid                          DC6094
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      C:\Users\Ignacio\Documents\Universidad\4\SegundoSemestre\TFG\___AuxiliarParaToquetearSinCagarla\GAMS\GAMSProgMat
+           lab\Prog-v5MINLP\Prog-v5MINLP.gms
+Output     C:\Users\Ignacio\Documents\Universidad\4\SegundoSemestre\TFG\___AuxiliarParaToquetearSinCagarla\GAMS\GAMSProgMat
+           lab\Prog-v5MINLP\Prog-v5MINLP.lst
+
+**** USER ERROR(S) ENCOUNTERED

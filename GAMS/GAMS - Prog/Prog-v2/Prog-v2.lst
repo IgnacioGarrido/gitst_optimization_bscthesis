@@ -1,0 +1,826 @@
+GAMS Rev 235  WEX-WEI 23.5.2 x86_64/MS Windows          05/03/17 19:31:03 Page 1
+Programa-v2
+C o m p i l a t i o n
+
+
+   2   
+      Esta es la versión 2 del programa final.
+      El objetivo será añadir a la versión 1 la producción fotovoltáica y una
+      carga minima con la que se va el coche.
+       
+       
+      Esta versión será simplificada, y solo habrá un coche con capacidad C=24 [
+      kWh].
+       
+      Utilizaré un vector del precio de la energía por horas:
+      PE = Precio de la energía:
+      PE(i) PENERGIA / 1
+                       2
+                       3 ..../
+       
+      Utilizaré un vector del consumo de la escuela por horas
+      CE = Consumo de la escuela
+      CE(i) CESCUELA / 1
+                       2
+                       3 ..../
+       
+      Utilizaré un vector de la producción fotovoltáica por horas
+      PF = Producción fotovoltáica de la escuela
+      PF(i) PFOTOVOLTAICA / 1
+                            2
+                            3 ..../
+       
+      Utilizaré un vector de los costes por hora (Lo que se gasta por hora en en
+      ergía)
+      CH = Coste por hora -> Lo que gasta la escuela
+      CH(i) CHORA / 1
+                    2
+                    3 ..../
+       
+      La función objetivo a minimizar será:
+       
+              Min F(x) = SUM(I,CH(I)) -> Minimizar el sumatorio de los costes/ho
+      ra
+       
+  40   
+  41  SET
+  42           I HORAS /1*24/;
+  43   
+  44  *Parámetros inventados...Falta sacar los valores reales
+  45  PARAMETERS
+  46  *Precio por KWh
+  47    PE(I) precio energía  /1       3.
+  48                           2       3.
+  49                           3       4.
+  50                           4       3.
+  51                           5       3.
+  52                           6       4.
+  53                           7       4.
+  54                           8       6.
+  55                           9       8.
+  56                           10      10.
+  57                           11      10.
+  58                           12      9.
+  59                           13      7.
+  60                           14      6.
+  61                           15      6.
+  62                           16      8.
+  63                           17      10.
+  64                           18      11.
+  65                           19      12.
+  66                           20      10.
+  67                           21      8.
+  68                           22      3.
+  69                           23      3.
+  70                           24      3. /
+  71   
+  72  *Producción fotovoltaica de la escuela / hora
+  73    PF(I) p. fotovoltaica /1       0.
+  74                           2       0.
+  75                           3       0.
+  76                           4       0.
+  77                           5       0.
+  78                           6       0.
+  79                           7       0.
+  80                           8       1.
+  81                           9       2.
+  82                           10      3.
+  83                           11      3.5
+  84                           12      4.
+  85                           13      4.3
+  86                           14      4.5
+  87                           15      4.5
+  88                           16      4.4
+  89                           17      4.
+  90                           18      3.5
+  91                           19      2.
+  92                           20      1.
+  93                           21      0.
+  94                           22      0.
+  95                           23      0.
+  96                           24      0. /
+  97   
+  98  *Consumo de la escuela / hora
+  99    CE(I) consumo escuela /1       50.
+ 100                           2       60.
+ 101                           3       70.
+ 102                           4       60.
+ 103                           5       70.
+ 104                           6       70.
+ 105                           7       90.
+ 106                           8       110.
+ 107                           9       130.
+ 108                           10      100.
+ 109                           11      100.
+ 110                           12      90.
+ 111                           13      80.
+ 112                           14      60.
+ 113                           15      60.
+ 114                           16      80.
+ 115                           17      90.
+ 116                           18      100.
+ 117                           19      150.
+ 118                           20      130.
+ 119                           21      80.
+ 120                           22      30.
+ 121                           23      30.
+ 122                           24      30. /
+ 123   
+ 124   
+ 125  CARGAMINIMAOUT(I) Contiene un array de 0 hasta la hora de salida. A partir
+       de ese punto contiene la carga minima de salida.
+ 126   
+ 127  COUNTERLOOP Contador para el loop /0/
+ 128   
+ 129  ;
+ 130   
+ 131  SCALAR
+ 132           CAPACIDAD               Capacidad de la batería en kWh  /24./
+ 133           CARGAINICIAL            Carga inicial en kWh            /15./
+ 134           HORASALIDA              Hora de salida                  /20/
+ 135           CARGAALASALIDA          Carga minima cuando se va       /18/
+ 136           RATIOCARGADESCARGA      KWh máximos en 1 hora           /3.68/;
+ 137   
+ 138   
+ 139  *Este loop pone un 0 en todas las posiciones de CARGAMINIMAOUT hasta la ho
+      ra de salida.
+ 140  *A la hora de salida pone como valor mínimo de la carga CARGAALASALIDA.
+ 141  LOOP(I, COUNTERLOOP = COUNTERLOOP+1;
+ 142          if (COUNTERLOOP < HORASALIDA, CARGAMINIMAOUT(I) = 0 ; else  CARGAM
+      INIMAOUT(I) =  CARGAALASALIDA;);
+ 143          if (COUNTERLOOP = 24, COUNTERLOOP = 0;);
+ 144      );
+ 145   
+ 146  DISPLAY "Carga minima por hora", CARGAMINIMAOUT;
+ 147   
+ 148  VARIABLES
+ 149  CARGA(I), CH(I), F;
+ 150   
+ 151   
+ 152  POSITIVE VARIABLES
+ 153  CARGA, CH;
+ 154   
+ 155  EQUATIONS
+ 156       OBJ                 La función objetivo
+ 157       COSTESINCOCHES(I)   Función para comparar el coste si no se usase est
+      e algoritmo
+ 158       ITERACION(I)        Función de las horas 1 a la 24
+ 159       ITERACIONPRIMERA    Funcion de la hora 1
+ 160       CARGAINI            Función que inicializa la carga de la bateria
+ 161       CAPACIDADMAX(I)     Funcion que condiciona la carga de la batería a l
+      a capacidad
+ 162       CARGAMAX(I)         Función que condiciona la carga  por hora máxima 
+      a 3.68 kWh
+ 163       DESCARGAMAX(I)      Función que condiciona la descarga  por hora máxi
+      ma a 3.68 kWh
+ 164       CARGASALIDA(I)      Función que sirve para que el coche nunca esté po
+      r debajo de un mínimo
+ 165  ;
+ 166   
+ 167  OBJ ..                   F  =E=  sum(I, CH(I)) ;
+ 168   
+ 169  COSTESINCOCHES(I) ..     PE(I)*CE(I) =E= CH(I);
+ 170   
+ 171  ITERACION(I) ..          PE(I+1)*[CE(I+1)- PF(I+1) + [CARGA(I+1) - CARGA(I
+      )]] =E=  CH(I+1) ;
+ 172   
+ 173  ITERACIONPRIMERA ..      PE('1')*[CE('1')-PF('1')] =E= CH('1') ;
+ 174   
+ 175  CARGAINI ..              CARGA('1') =E= CARGAINICIAL;
+ 176   
+ 177  CAPACIDADMAX(I) ..       CARGA(I+1) =L= CAPACIDAD;
+ 178   
+ 179  CARGAMAX(I) ..           CARGA(I+1) - CARGA(I) =L= RATIOCARGADESCARGA;
+ 180   
+ 181  DESCARGAMAX(I) ..        CARGA(I) - CARGA(I-1) =G= -RATIOCARGADESCARGA;
+ 182   
+ 183  CARGASALIDA(I) ..        CARGA(I) =G= CARGAMINIMAOUT(I);
+ 184   
+ 185   
+ 186  MODEL progConCoches /OBJ,ITERACION, ITERACIONPRIMERA, CARGAINI, CAPACIDADM
+      AX, CARGAMAX, DESCARGAMAX, CARGASALIDA/ ;
+ 187  MODEL progSinCoches /OBJ,COSTESINCOCHES/ ;
+ 188   
+ 189  SOLVE progSinCoches using lp minimizing F ;
+ 190  SOLVE progConCoches using lp minimizing F ;
+ 191   
+
+
+COMPILATION TIME     =        0.000 SECONDS      3 Mb  WEX235-235 Aug 17, 2010
+GAMS Rev 235  WEX-WEI 23.5.2 x86_64/MS Windows          05/03/17 19:31:03 Page 2
+Programa-v2
+E x e c u t i o n
+
+
+----    146 Carga minima por hora
+
+----    146 PARAMETER CARGAMINIMAOUT  Contiene un array de 0 hasta la hora de sa
+                                      lida. A partir de ese punto contiene la ca
+                                      rga minima de salida.
+
+20 18.000,    21 18.000,    22 18.000,    23 18.000,    24 18.000
+
+GAMS Rev 235  WEX-WEI 23.5.2 x86_64/MS Windows          05/03/17 19:31:03 Page 3
+Programa-v2
+Equation Listing    SOLVE progSinCoches Using LP From line 189
+
+
+---- OBJ  =E=  La función objetivo
+
+OBJ..  - CH(1) - CH(2) - CH(3) - CH(4) - CH(5) - CH(6) - CH(7) - CH(8) - CH(9)
+     
+      - CH(10) - CH(11) - CH(12) - CH(13) - CH(14) - CH(15) - CH(16) - CH(17)
+     
+      - CH(18) - CH(19) - CH(20) - CH(21) - CH(22) - CH(23) - CH(24) + F =E= 0 ;
+     
+      (LHS = 0)
+     
+
+---- COSTESINCOCHES  =E=  Función para comparar el coste si no se usase este alg
+                          oritmo
+
+COSTESINCOCHES(1)..  - CH(1) =E= -150 ; (LHS = 0, INFES = 150 ****)
+     
+COSTESINCOCHES(2)..  - CH(2) =E= -180 ; (LHS = 0, INFES = 180 ****)
+     
+COSTESINCOCHES(3)..  - CH(3) =E= -280 ; (LHS = 0, INFES = 280 ****)
+     
+REMAINING 21 ENTRIES SKIPPED
+
+GAMS Rev 235  WEX-WEI 23.5.2 x86_64/MS Windows          05/03/17 19:31:03 Page 4
+Programa-v2
+Column Listing      SOLVE progSinCoches Using LP From line 189
+
+
+---- CH  
+
+CH(1)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       OBJ
+       -1       COSTESINCOCHES(1)
+
+CH(2)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       OBJ
+       -1       COSTESINCOCHES(2)
+
+CH(3)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       OBJ
+       -1       COSTESINCOCHES(3)
+
+REMAINING 21 ENTRIES SKIPPED
+
+---- F  
+
+F
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       OBJ
+
+GAMS Rev 235  WEX-WEI 23.5.2 x86_64/MS Windows          05/03/17 19:31:03 Page 5
+Programa-v2
+Model Statistics    SOLVE progSinCoches Using LP From line 189
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           2     SINGLE EQUATIONS           25
+BLOCKS OF VARIABLES           2     SINGLE VARIABLES           25
+NON ZERO ELEMENTS            49
+
+
+GENERATION TIME      =        0.016 SECONDS      4 Mb  WEX235-235 Aug 17, 2010
+
+
+EXECUTION TIME       =        0.016 SECONDS      4 Mb  WEX235-235 Aug 17, 2010
+GAMS Rev 235  WEX-WEI 23.5.2 x86_64/MS Windows          05/03/17 19:31:03 Page 6
+Programa-v2
+Solution Report     SOLVE progSinCoches Using LP From line 189
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   progSinCoches       OBJECTIVE  F
+     TYPE    LP                  DIRECTION  MINIMIZE
+     SOLVER  CPLEX               FROM LINE  189
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      1 Optimal                   
+**** OBJECTIVE VALUE            14080.0000
+
+ RESOURCE USAGE, LIMIT          0.014      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+
+IBM ILOG CPLEX   Aug 18, 2010 23.5.2 WEX 19143.19383 WEI x86_64/MS Windows
+Cplex 12.2.0.0, GAMS Link 34 
+
+LP status(1): optimal
+Optimal solution found.
+Objective :       14080.000000
+
+
+                       LOWER     LEVEL     UPPER    MARGINAL
+
+---- EQU OBJ             .         .         .        1.000      
+
+  OBJ  La función objetivo
+
+---- EQU COSTESINCOCHES  Función para comparar el coste si no se usase este algo
+                         ritmo
+
+      LOWER     LEVEL     UPPER    MARGINAL
+
+1   -150.000  -150.000  -150.000    -1.000      
+2   -180.000  -180.000  -180.000    -1.000      
+3   -280.000  -280.000  -280.000    -1.000      
+4   -180.000  -180.000  -180.000    -1.000      
+5   -210.000  -210.000  -210.000    -1.000      
+6   -280.000  -280.000  -280.000    -1.000      
+7   -360.000  -360.000  -360.000    -1.000      
+8   -660.000  -660.000  -660.000    -1.000      
+9  -1040.000 -1040.000 -1040.000    -1.000      
+10 -1000.000 -1000.000 -1000.000    -1.000      
+11 -1000.000 -1000.000 -1000.000    -1.000      
+12  -810.000  -810.000  -810.000    -1.000      
+13  -560.000  -560.000  -560.000    -1.000      
+14  -360.000  -360.000  -360.000    -1.000      
+15  -360.000  -360.000  -360.000    -1.000      
+16  -640.000  -640.000  -640.000    -1.000      
+17  -900.000  -900.000  -900.000    -1.000      
+18 -1100.000 -1100.000 -1100.000    -1.000      
+19 -1800.000 -1800.000 -1800.000    -1.000      
+20 -1300.000 -1300.000 -1300.000    -1.000      
+21  -640.000  -640.000  -640.000    -1.000      
+22   -90.000   -90.000   -90.000    -1.000      
+23   -90.000   -90.000   -90.000    -1.000      
+24   -90.000   -90.000   -90.000    -1.000      
+
+---- VAR CH  
+
+      LOWER     LEVEL     UPPER    MARGINAL
+
+1       .      150.000     +INF       .         
+2       .      180.000     +INF       .         
+3       .      280.000     +INF       .         
+4       .      180.000     +INF       .         
+5       .      210.000     +INF       .         
+6       .      280.000     +INF       .         
+7       .      360.000     +INF       .         
+8       .      660.000     +INF       .         
+9       .     1040.000     +INF       .         
+10      .     1000.000     +INF       .         
+11      .     1000.000     +INF       .         
+12      .      810.000     +INF       .         
+13      .      560.000     +INF       .         
+14      .      360.000     +INF       .         
+15      .      360.000     +INF       .         
+16      .      640.000     +INF       .         
+17      .      900.000     +INF       .         
+18      .     1100.000     +INF       .         
+19      .     1800.000     +INF       .         
+20      .     1300.000     +INF       .         
+21      .      640.000     +INF       .         
+22      .       90.000     +INF       .         
+23      .       90.000     +INF       .         
+24      .       90.000     +INF       .         
+
+                       LOWER     LEVEL     UPPER    MARGINAL
+
+---- VAR F              -INF  14080.000     +INF       .         
+
+
+**** REPORT SUMMARY :        0     NONOPT
+                             0 INFEASIBLE
+                             0  UNBOUNDED
+GAMS Rev 235  WEX-WEI 23.5.2 x86_64/MS Windows          05/03/17 19:31:03 Page 7
+Programa-v2
+Equation Listing    SOLVE progConCoches Using LP From line 190
+
+
+---- OBJ  =E=  La función objetivo
+
+OBJ..  - CH(1) - CH(2) - CH(3) - CH(4) - CH(5) - CH(6) - CH(7) - CH(8) - CH(9)
+     
+      - CH(10) - CH(11) - CH(12) - CH(13) - CH(14) - CH(15) - CH(16) - CH(17)
+     
+      - CH(18) - CH(19) - CH(20) - CH(21) - CH(22) - CH(23) - CH(24) + F =E= 0 ;
+     
+      (LHS = 0)
+     
+
+---- ITERACION  =E=  Función de las horas 1 a la 24
+
+ITERACION(1)..  - 3*CARGA(1) + 3*CARGA(2) - CH(2) =E= -180 ; (LHS = -180)
+     
+ITERACION(2)..  - 4*CARGA(2) + 4*CARGA(3) - CH(3) =E= -280 ; (LHS = -280)
+     
+ITERACION(3)..  - 3*CARGA(3) + 3*CARGA(4) - CH(4) =E= -180 ; (LHS = -180)
+     
+REMAINING 20 ENTRIES SKIPPED
+
+
+---- ITERACIONPRIMERA  =E=  Funcion de la hora 1
+
+ITERACIONPRIMERA..  - CH(1) =E= -150 ; (LHS = -150)
+     
+
+---- CARGAINI  =E=  Función que inicializa la carga de la bateria
+
+CARGAINI..  CARGA(1) =E= 15 ; (LHS = 0, INFES = 15 ****)
+     
+
+---- CAPACIDADMAX  =L=  Funcion que condiciona la carga de la batería a la capac
+                        idad
+
+CAPACIDADMAX(1)..  CARGA(2) =L= 24 ; (LHS = 0)
+     
+CAPACIDADMAX(2)..  CARGA(3) =L= 24 ; (LHS = 0)
+     
+CAPACIDADMAX(3)..  CARGA(4) =L= 24 ; (LHS = 0)
+     
+REMAINING 20 ENTRIES SKIPPED
+
+
+---- CARGAMAX  =L=  Función que condiciona la carga  por hora máxima a 3.68 kWh
+
+CARGAMAX(1)..  - CARGA(1) + CARGA(2) =L= 3.68 ; (LHS = 0)
+     
+CARGAMAX(2)..  - CARGA(2) + CARGA(3) =L= 3.68 ; (LHS = 0)
+     
+CARGAMAX(3)..  - CARGA(3) + CARGA(4) =L= 3.68 ; (LHS = 0)
+     
+REMAINING 21 ENTRIES SKIPPED
+
+
+---- DESCARGAMAX  =G=  Función que condiciona la descarga  por hora máxima a 3.6
+                       8 kWh
+
+DESCARGAMAX(1)..  CARGA(1) =G= -3.68 ; (LHS = 0)
+     
+DESCARGAMAX(2)..  - CARGA(1) + CARGA(2) =G= -3.68 ; (LHS = 0)
+     
+DESCARGAMAX(3)..  - CARGA(2) + CARGA(3) =G= -3.68 ; (LHS = 0)
+     
+REMAINING 21 ENTRIES SKIPPED
+
+
+---- CARGASALIDA  =G=  Función que sirve para que el coche nunca esté por debajo
+                       de un mínimo
+
+CARGASALIDA(1)..  CARGA(1) =G= 0 ; (LHS = 0)
+     
+CARGASALIDA(2)..  CARGA(2) =G= 0 ; (LHS = 0)
+     
+CARGASALIDA(3)..  CARGA(3) =G= 0 ; (LHS = 0)
+     
+REMAINING 21 ENTRIES SKIPPED
+
+GAMS Rev 235  WEX-WEI 23.5.2 x86_64/MS Windows          05/03/17 19:31:03 Page 8
+Programa-v2
+Column Listing      SOLVE progConCoches Using LP From line 190
+
+
+---- CARGA  
+
+CARGA(1)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -3       ITERACION(1)
+        1       CARGAINI
+       -1       CARGAMAX(1)
+        1       DESCARGAMAX(1)
+       -1       DESCARGAMAX(2)
+        1       CARGASALIDA(1)
+
+CARGA(2)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        3       ITERACION(1)
+       -4       ITERACION(2)
+        1       CAPACIDADMAX(1)
+        1       CARGAMAX(1)
+       -1       CARGAMAX(2)
+        1       DESCARGAMAX(2)
+       -1       DESCARGAMAX(3)
+        1       CARGASALIDA(2)
+
+CARGA(3)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        4       ITERACION(2)
+       -3       ITERACION(3)
+        1       CAPACIDADMAX(2)
+        1       CARGAMAX(2)
+       -1       CARGAMAX(3)
+        1       DESCARGAMAX(3)
+       -1       DESCARGAMAX(4)
+        1       CARGASALIDA(3)
+
+REMAINING 21 ENTRIES SKIPPED
+
+---- CH  
+
+CH(1)
+                (.LO, .L, .UP, .M = 0, 150, +INF, 0)
+       -1       OBJ
+       -1       ITERACIONPRIMERA
+
+CH(2)
+                (.LO, .L, .UP, .M = 0, 180, +INF, 0)
+       -1       OBJ
+       -1       ITERACION(1)
+
+CH(3)
+                (.LO, .L, .UP, .M = 0, 280, +INF, 0)
+       -1       OBJ
+       -1       ITERACION(2)
+
+REMAINING 21 ENTRIES SKIPPED
+
+---- F  
+
+F
+                (.LO, .L, .UP, .M = -INF, 14080, +INF, 0)
+        1       OBJ
+
+GAMS Rev 235  WEX-WEI 23.5.2 x86_64/MS Windows          05/03/17 19:31:03 Page 9
+Programa-v2
+Model Statistics    SOLVE progConCoches Using LP From line 190
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           8     SINGLE EQUATIONS          121
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES           49
+NON ZERO ELEMENTS           237
+
+
+GENERATION TIME      =        0.000 SECONDS      3 Mb  WEX235-235 Aug 17, 2010
+
+
+EXECUTION TIME       =        0.016 SECONDS      3 Mb  WEX235-235 Aug 17, 2010
+GAMS Rev 235  WEX-WEI 23.5.2 x86_64/MS Windows         05/03/17 19:31:03 Page 10
+Programa-v2
+Solution Report     SOLVE progConCoches Using LP From line 190
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   progConCoches       OBJECTIVE  F
+     TYPE    LP                  DIRECTION  MINIMIZE
+     SOLVER  CPLEX               FROM LINE  190
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      1 Optimal                   
+**** OBJECTIVE VALUE            13642.3200
+
+ RESOURCE USAGE, LIMIT          0.017      1000.000
+ ITERATION COUNT, LIMIT        15    2000000000
+
+IBM ILOG CPLEX   Aug 18, 2010 23.5.2 WEX 19143.19383 WEI x86_64/MS Windows
+Cplex 12.2.0.0, GAMS Link 34 
+
+LP status(1): optimal
+Optimal solution found.
+Objective :       13642.320000
+
+
+                       LOWER     LEVEL     UPPER    MARGINAL
+
+---- EQU OBJ             .         .         .        1.000      
+
+  OBJ  La función objetivo
+
+---- EQU ITERACION  Función de las horas 1 a la 24
+
+      LOWER     LEVEL     UPPER    MARGINAL
+
+1   -180.000  -180.000  -180.000    -1.000      
+2   -280.000  -280.000  -280.000    -1.000      
+3   -180.000  -180.000  -180.000    -1.000      
+4   -210.000  -210.000  -210.000    -1.000      
+5   -280.000  -280.000  -280.000    -1.000      
+6   -360.000  -360.000  -360.000    -1.000      
+7   -654.000  -654.000  -654.000    -1.000      
+8  -1024.000 -1024.000 -1024.000    -1.000      
+9   -970.000  -970.000  -970.000    -1.000      
+10  -965.000  -965.000  -965.000    -1.000      
+11  -774.000  -774.000  -774.000    -1.000      
+12  -529.900  -529.900  -529.900    -1.000      
+13  -333.000  -333.000  -333.000    -1.000      
+14  -333.000  -333.000  -333.000    -1.000      
+15  -604.800  -604.800  -604.800    -1.000      
+16  -860.000  -860.000  -860.000    -1.000      
+17 -1061.500 -1061.500 -1061.500    -1.000      
+18 -1776.000 -1776.000 -1776.000    -1.000      
+19 -1290.000 -1290.000 -1290.000    -1.000      
+20  -640.000  -640.000  -640.000    -1.000      
+21   -90.000   -90.000   -90.000    -1.000      
+22   -90.000   -90.000   -90.000    -1.000      
+23   -90.000   -90.000   -90.000    -1.000      
+
+                       LOWER     LEVEL     UPPER    MARGINAL
+
+---- EQU ITERACION~  -150.000  -150.000  -150.000    -1.000      
+---- EQU CARGAINI      15.000    15.000    15.000    -4.000      
+
+  ITERACIONPRIMERA  Funcion de la hora 1
+  CARGAINI  Función que inicializa la carga de la bateria
+
+---- EQU CAPACIDADMAX  Funcion que condiciona la carga de la batería a la capaci
+                       dad
+
+      LOWER     LEVEL     UPPER    MARGINAL
+
+1      -INF     18.680    24.000      .         
+2      -INF     16.640    24.000      .         
+3      -INF     20.320    24.000      .         
+4      -INF     24.000    24.000      EPS       
+5      -INF     20.320    24.000      .         
+6      -INF     24.000    24.000    -2.000      
+7      -INF     24.000    24.000    -2.000      
+8      -INF     20.320    24.000      .         
+9      -INF     16.640    24.000      .         
+10     -INF     12.960    24.000      .         
+11     -INF      9.280    24.000      .         
+12     -INF     12.960    24.000      .         
+13     -INF     16.640    24.000      .         
+14     -INF     20.320    24.000      .         
+15     -INF     24.000    24.000    -2.000      
+16     -INF     24.000    24.000      EPS       
+17     -INF     20.320    24.000      .         
+18     -INF     16.640    24.000      .         
+19     -INF     18.000    24.000      .         
+20     -INF     18.000    24.000      .         
+21     -INF     18.000    24.000      .         
+22     -INF     18.000    24.000      .         
+23     -INF     18.000    24.000      .         
+
+---- EQU CARGAMAX  Función que condiciona la carga  por hora máxima a 3.68 kWh
+
+      LOWER     LEVEL     UPPER    MARGINAL
+
+1      -INF      3.680     3.680    -1.000      
+2      -INF     -2.040     3.680      .         
+3      -INF      3.680     3.680    -1.000      
+4      -INF      3.680     3.680    -1.000      
+5      -INF     -3.680     3.680      .         
+6      -INF      3.680     3.680      EPS       
+7      -INF  4.441E-16     3.680      .         
+8      -INF     -3.680     3.680      .         
+9      -INF     -3.680     3.680      .         
+10     -INF     -3.680     3.680      .         
+11     -INF     -3.680     3.680      .         
+12     -INF      3.680     3.680    -1.000      
+13     -INF      3.680     3.680    -2.000      
+14     -INF      3.680     3.680    -2.000      
+15     -INF      3.680     3.680      EPS       
+16     -INF  4.441E-16     3.680      .         
+17     -INF     -3.680     3.680      .         
+18     -INF     -3.680     3.680      .         
+19     -INF      1.360     3.680      .         
+20     -INF  4.441E-16     3.680      .         
+21     -INF  4.441E-16     3.680      .         
+22     -INF  4.441E-16     3.680      .         
+23     -INF  4.441E-16     3.680      .         
+24     -INF    -18.000     3.680      .         
+
+---- EQU DESCARGAMAX  Función que condiciona la descarga  por hora máxima a 3.68
+                      kWh
+
+      LOWER     LEVEL     UPPER    MARGINAL
+
+1     -3.680    15.000     +INF       .         
+2     -3.680     3.680     +INF       .         
+3     -3.680    -2.040     +INF       .         
+4     -3.680     3.680     +INF       .         
+5     -3.680     3.680     +INF       .         
+6     -3.680    -3.680     +INF       .         
+7     -3.680     3.680     +INF       .         
+8     -3.680 -4.44E-16     +INF       .         
+9     -3.680    -3.680     +INF       .         
+10    -3.680    -3.680     +INF      2.000      
+11    -3.680    -3.680     +INF      2.000      
+12    -3.680    -3.680     +INF      1.000      
+13    -3.680     3.680     +INF       .         
+14    -3.680     3.680     +INF       .         
+15    -3.680     3.680     +INF       .         
+16    -3.680     3.680     +INF       .         
+17    -3.680 -4.44E-16     +INF       .         
+18    -3.680    -3.680     +INF      1.000      
+19    -3.680    -3.680     +INF      2.000      
+20    -3.680     1.360     +INF       .         
+21    -3.680 -4.44E-16     +INF       .         
+22    -3.680 -4.44E-16     +INF       .         
+23    -3.680 -4.44E-16     +INF       .         
+24    -3.680 -4.44E-16     +INF       .         
+
+---- EQU CARGASALIDA  Función que sirve para que el coche nunca esté por debajo 
+                      de un mínimo
+
+      LOWER     LEVEL     UPPER    MARGINAL
+
+1       .       15.000     +INF       .         
+2       .       18.680     +INF       .         
+3       .       16.640     +INF       .         
+4       .       20.320     +INF       .         
+5       .       24.000     +INF       .         
+6       .       20.320     +INF       .         
+7       .       24.000     +INF       .         
+8       .       24.000     +INF       .         
+9       .       20.320     +INF       .         
+10      .       16.640     +INF       .         
+11      .       12.960     +INF       .         
+12      .        9.280     +INF       .         
+13      .       12.960     +INF       .         
+14      .       16.640     +INF       .         
+15      .       20.320     +INF       .         
+16      .       24.000     +INF       .         
+17      .       24.000     +INF       .         
+18      .       20.320     +INF       .         
+19      .       16.640     +INF       .         
+20    18.000    18.000     +INF      2.000      
+21    18.000    18.000     +INF      5.000      
+22    18.000    18.000     +INF       EPS       
+23    18.000    18.000     +INF       EPS       
+24    18.000    18.000     +INF      3.000      
+
+---- VAR CARGA  
+
+      LOWER     LEVEL     UPPER    MARGINAL
+
+1       .       15.000     +INF       .         
+2       .       18.680     +INF       .         
+3       .       16.640     +INF       .         
+4       .       20.320     +INF       .         
+5       .       24.000     +INF       .         
+6       .       20.320     +INF       .         
+7       .       24.000     +INF       .         
+8       .       24.000     +INF       .         
+9       .       20.320     +INF       .         
+10      .       16.640     +INF       .         
+11      .       12.960     +INF       .         
+12      .        9.280     +INF       .         
+13      .       12.960     +INF       .         
+14      .       16.640     +INF       .         
+15      .       20.320     +INF       .         
+16      .       24.000     +INF       .         
+17      .       24.000     +INF       .         
+18      .       20.320     +INF       .         
+19      .       16.640     +INF       .         
+20      .       18.000     +INF       .         
+21      .       18.000     +INF       .         
+22      .       18.000     +INF       .         
+23      .       18.000     +INF       .         
+24      .       18.000     +INF       .         
+
+---- VAR CH  
+
+      LOWER     LEVEL     UPPER    MARGINAL
+
+1       .      150.000     +INF       .         
+2       .      191.040     +INF       .         
+3       .      271.840     +INF       .         
+4       .      191.040     +INF       .         
+5       .      221.040     +INF       .         
+6       .      265.280     +INF       .         
+7       .      374.720     +INF       .         
+8       .      654.000     +INF       .         
+9       .      994.560     +INF       .         
+10      .      933.200     +INF       .         
+11      .      928.200     +INF       .         
+12      .      740.880     +INF       .         
+13      .      555.660     +INF       .         
+14      .      355.080     +INF       .         
+15      .      355.080     +INF       .         
+16      .      634.240     +INF       .         
+17      .      860.000     +INF       .         
+18      .     1021.020     +INF       .         
+19      .     1731.840     +INF       .         
+20      .     1303.600     +INF       .         
+21      .      640.000     +INF       .         
+22      .       90.000     +INF       .         
+23      .       90.000     +INF       .         
+24      .       90.000     +INF       .         
+
+                       LOWER     LEVEL     UPPER    MARGINAL
+
+---- VAR F              -INF  13642.320     +INF       .         
+
+
+**** REPORT SUMMARY :        0     NONOPT
+                             0 INFEASIBLE
+                             0  UNBOUNDED
+
+
+EXECUTION TIME       =        0.000 SECONDS      2 Mb  WEX235-235 Aug 17, 2010
+
+
+USER: Departamento de Ingenieria Civil               S091109:0516AN-WIN
+      Universidad Politecnica de Madrid                          DC6094
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      C:\Users\Ignacio\Documents\Universidad\4\SegundoSemestre\TFG\GAMS\GAM
+           S - Prog\Prog-v2\Prog-v2.gms
+Output     C:\Users\Ignacio\Documents\Universidad\4\SegundoSemestre\TFG\GAMS\GAM
+           S - Prog\Prog-v2\Prog-v2.lst

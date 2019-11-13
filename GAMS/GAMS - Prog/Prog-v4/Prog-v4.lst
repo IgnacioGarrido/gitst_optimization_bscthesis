@@ -1,0 +1,1181 @@
+GAMS Rev 235  WEX-WEI 23.5.2 x86_64/MS Windows          05/03/17 20:32:31 Page 1
+Programa-v4
+C o m p i l a t i o n
+
+
+   2   
+      Esta es la versión 4 del programa final.
+      El objetivo será adaptar la versión 3 a una nueva versión con 5 coches.
+      Para ello se añadirá tablas con una estructura (y nombres) siimilar a
+      los vectores de ejercicios anteriores.
+       
+      Utilizaré un vector del precio de la energía por horas:
+      PRECIOENERGIA = Precio de la energía:
+      PRECIOENERGIA(i) PRECIOENERGIA / 1
+                       2
+                       3 ..../
+       
+      Utilizaré un vector del consumo de la escuela por horas
+      CONSUMOESCUELA = Consumo de la escuela
+      CONSUMOESCUELA(i) CESCUELA / 1
+                       2
+                       3 ..../
+       
+      Utilizaré un vector de la producción fotovoltáica por horas
+      PRODUCCIONFOTOVOLTAICA = Producción fotovoltáica de la escuela
+      PRODUCCIONFOTOVOLTAICA(i) PFOTOVOLTAICA / 1
+                            2
+                            3 ..../
+       
+      Utilizaré un vector de 0 y 1 que tendrá un 1 en las posiciones en las que
+      el coche está en la escuela y un 0 en las que no.
+      PERIODOESTACIONADO(i) PERIODO DE ESTANCIA  / 1
+                            2
+                            3 ..../
+       
+      Utilizaré un vector de los costes por hora (Lo que se gasta por hora en en
+      ergía)
+      CONSUMOPORHORA = Coste por hora -> Lo que gasta la escuela
+      CONSUMOPORHORA(i) CHORA / 1
+                    2
+                    3 ..../
+       
+      La función objetivo a minimizar será:
+       
+              Min F(x) = SUM(I,CONSUMOPORHORA(I))) -> Minimizar el sumatorio de 
+      los costes/hora
+       
+  44   SET
+  45           I HORAS /1*24/
+  46           J COCHES /1*5/;
+  47   
+  48  *Parámetros inventados...Falta sacar los valores reales
+  49  PARAMETERS
+  50  *Precio por KWh
+  51    PRECIOENERGIA(I) precio energía  /1       3.
+  52                           2       3.
+  53                           3       4.
+  54                           4       3.
+  55                           5       3.
+  56                           6       4.
+  57                           7       4.
+  58                           8       6.
+  59                           9       8.
+  60                           10      10.
+  61                           11      10.
+  62                           12      9.
+  63                           13      7.
+  64                           14      6.
+  65                           15      6.
+  66                           16      8.
+  67                           17      10.
+  68                           18      11.
+  69                           19      12.
+  70                           20      10.
+  71                           21      8.
+  72                           22      3.
+  73                           23      3.
+  74                           24      3. /
+  75   
+  76  *Producción fotovoltaica de la escuela / hora
+  77    PRODUCCIONFOTOVOLTAICA(I) p. fotovoltaica /1       0.
+  78                           2       0.
+  79                           3       0.
+  80                           4       0.
+  81                           5       0.
+  82                           6       0.
+  83                           7       0.
+  84                           8       1.
+  85                           9       2.
+  86                           10      3.
+  87                           11      3.5
+  88                           12      4.
+  89                           13      4.3
+  90                           14      4.5
+  91                           15      4.5
+  92                           16      4.4
+  93                           17      4.
+  94                           18      3.5
+  95                           19      2.
+  96                           20      1.
+  97                           21      0.
+  98                           22      0.
+  99                           23      0.
+ 100                           24      0. /
+ 101   
+ 102  *Consumo de la escuela / hora
+ 103    CONSUMOESCUELA(I) consumo escuela /1       50.
+ 104                           2       60.
+ 105                           3       70.
+ 106                           4       60.
+ 107                           5       70.
+ 108                           6       70.
+ 109                           7       90.
+ 110                           8       110.
+ 111                           9       130.
+ 112                           10      100.
+ 113                           11      100.
+ 114                           12      90.
+ 115                           13      80.
+ 116                           14      60.
+ 117                           15      60.
+ 118                           16      80.
+ 119                           17      90.
+ 120                           18      100.
+ 121                           19      150.
+ 122                           20      130.
+ 123                           21      80.
+ 124                           22      30.
+ 125                           23      30.
+ 126                           24      30. /
+ 127   
+ 128   CARGAINICIAL(J)            Carga inicial en kWh            / 1 18, 2 20 ,
+       3 22 , 4 19 , 5 17/
+ 129   HORASALIDA(J)              Hora de salida                  / 1 16 , 2 20 
+      , 3 14 , 4 18 , 5 21/
+ 130   HORALLEGADA(J)             Hora de llegada                 / 1 11 , 2 9 ,
+       3 8 , 4 7 , 5 9/
+ 131   
+ 132   
+ 133  ;
+ 134   
+ 135  TABLE
+ 136  *Tabla de 1 y 0 con un 1 en las horas en las que el coche está aparcado.
+ 137  *Filas -> Coches.
+ 138  *Columnas -> Horas.
+ 139  PERIODOESTACIONADO(J, I) PERIODO DE ESTANCIA
+ 140           1        2        3        4        5        6        7        8 
+             9        10       11       12       13       14       15       16  
+           17       18       19       20       21       22       23       24
+ 141  1        0        0        0        0        0        0        0        0 
+             0        0        1        1        1        1        1        1   
+           0        0        0        0        0        0        0        0
+ 142  2        0        0        0        0        0        0        0        0 
+             1        1        1        1        1        1        1        1   
+           1        1        1        1        0        0        0        0
+ 143  3        0        0        0        0        0        0        0        1 
+             1        1        1        1        1        1        0        0   
+           0        0        0        0        0        0        0        0
+ 144  4        0        0        0        0        0        0        1        1 
+             1        1        1        1        1        1        1        1   
+           1        1        0        0        0        0        0        0
+ 145  5        0        0        0        0        0        0        0        0 
+             1        1        1        1        1        1        1        1   
+           1        1        1        1        1        0        0        0
+ 146   
+ 147   
+ 148  ;
+ 149   
+ 150  SCALAR
+ 151           CAPACIDAD               Capacidad de la batería en kWh  /24/
+ 152           CARGAALASALIDA          Carga minima cuando se va       /18/
+ 153           COUNTERLOOP             Contador para el loop           /0/
+ 154           RATIOCARGADESCARGA      KWh máximos en 1 hora           /3.68/;
+ 155   
+ 156  VARIABLES
+ 157  F;
+ 158   
+ 159  POSITIVE VARIABLES
+ 160  CARGA(J,I), CONSUMOPORHORA(I);
+ 161   
+ 162  *fx para fijar el valor de una variable.
+ 163  *Este loop inicializa el valor de la carga con CARGAINICIAL.
+ 164  *Fija ese valor en todas las horas hasta que llega.
+ 165  LOOP(J,LOOP(I, COUNTERLOOP = COUNTERLOOP+1;
+ 166          if (COUNTERLOOP <= HORALLEGADA(J), CARGA.fx(J,I) =  CARGAINICIAL(J
+      ););
+ 167          if (COUNTERLOOP = 24, COUNTERLOOP = 0;);
+ 168      ););
+ 169   
+ 170  *lo para poner el límite inferior de una variable.
+ 171  *Este loop pone un límite inferior a la carga de salida. Aseguramos que el
+ 172  *coche se va con una carga mínima.
+ 173  LOOP(J,
+ 174  LOOP(I, COUNTERLOOP = COUNTERLOOP+1;
+ 175          if (COUNTERLOOP >= HORASALIDA(J), CARGA.lo(J,I) =  CARGAALASALIDA;
+      );
+ 176          if (COUNTERLOOP = 24, COUNTERLOOP = 0;);
+ 177      ););
+ 178   
+ 179  EQUATIONS
+ 180       OBJ                 La función objetivo
+ 181       COSTESINCOCHES(I)   Función para comparar el coste si no se usase est
+      e algoritmo
+ 182       ITERACION(I)        Función de las horas 1 a la 24
+ 183       CAPACIDADMAX(J,I)     Funcion que condiciona la carga de la batería a
+       la capacidad
+ 184       CARGAMAX(J,I)         Función que condiciona la carga  por hora máxim
+      a a 3.68 kWh
+ 185       DESCARGAMAX(J,I)      Función que condiciona la descarga  por hora má
+      xima a 3.68 kWh
+ 186  ;
+ 187   
+ 188  OBJ ..                   F  =E=  sum(I, CONSUMOPORHORA(I));
+ 189   
+ 190  COSTESINCOCHES(I) ..     PRECIOENERGIA(I)*[CONSUMOESCUELA(I)- PRODUCCIONFO
+      TOVOLTAICA(I)] =E= CONSUMOPORHORA(I);
+ 191   
+ 192  ITERACION(I) ..          PRECIOENERGIA(I)*[CONSUMOESCUELA(I)- PRODUCCIONFO
+      TOVOLTAICA(I) + sum(J, [[CARGA(J,I) - CARGA(J,I-1)]*PERIODOESTACIONADO(J,I
+      )])] =E=  CONSUMOPORHORA(I) ;
+ 193   
+ 194  CAPACIDADMAX(J,I) ..       CARGA(J,I) =L= CAPACIDAD;
+ 195   
+ 196  CARGAMAX(J,I) ..         CARGA(J,I+1) - CARGA(J,I) =L= RATIOCARGADESCARGA;
+ 197   
+ 198  DESCARGAMAX(J,I) ..      CARGA(J,I) - CARGA(J,I-1) =G= -RATIOCARGADESCARGA
+      ;
+ 199   
+ 200   
+ 201  MODEL progConCoches /OBJ,ITERACION, CAPACIDADMAX, CARGAMAX, DESCARGAMAX/ ;
+ 202  MODEL progSinCoches /OBJ,COSTESINCOCHES/ ;
+ 203   
+ 204  SOLVE progSinCoches using lp minimizing F;
+ 205  SOLVE progConCoches using lp minimizing F;
+ 206   
+
+
+COMPILATION TIME     =        0.000 SECONDS      3 Mb  WEX235-235 Aug 17, 2010
+GAMS Rev 235  WEX-WEI 23.5.2 x86_64/MS Windows          05/03/17 20:32:31 Page 2
+Programa-v4
+Equation Listing    SOLVE progSinCoches Using LP From line 204
+
+
+---- OBJ  =E=  La función objetivo
+
+OBJ..  F - CONSUMOPORHORA(1) - CONSUMOPORHORA(2) - CONSUMOPORHORA(3)
+     
+      - CONSUMOPORHORA(4) - CONSUMOPORHORA(5) - CONSUMOPORHORA(6)
+     
+      - CONSUMOPORHORA(7) - CONSUMOPORHORA(8) - CONSUMOPORHORA(9)
+     
+      - CONSUMOPORHORA(10) - CONSUMOPORHORA(11) - CONSUMOPORHORA(12)
+     
+      - CONSUMOPORHORA(13) - CONSUMOPORHORA(14) - CONSUMOPORHORA(15)
+     
+      - CONSUMOPORHORA(16) - CONSUMOPORHORA(17) - CONSUMOPORHORA(18)
+     
+      - CONSUMOPORHORA(19) - CONSUMOPORHORA(20) - CONSUMOPORHORA(21)
+     
+      - CONSUMOPORHORA(22) - CONSUMOPORHORA(23) - CONSUMOPORHORA(24) =E= 0 ;
+     
+      (LHS = 0)
+     
+
+---- COSTESINCOCHES  =E=  Función para comparar el coste si no se usase este alg
+                          oritmo
+
+COSTESINCOCHES(1)..  - CONSUMOPORHORA(1) =E= -150 ; (LHS = 0, INFES = 150 ****)
+     
+COSTESINCOCHES(2)..  - CONSUMOPORHORA(2) =E= -180 ; (LHS = 0, INFES = 180 ****)
+     
+COSTESINCOCHES(3)..  - CONSUMOPORHORA(3) =E= -280 ; (LHS = 0, INFES = 280 ****)
+     
+REMAINING 21 ENTRIES SKIPPED
+
+GAMS Rev 235  WEX-WEI 23.5.2 x86_64/MS Windows          05/03/17 20:32:31 Page 3
+Programa-v4
+Column Listing      SOLVE progSinCoches Using LP From line 204
+
+
+---- F  
+
+F
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       OBJ
+
+
+---- CONSUMOPORHORA  
+
+CONSUMOPORHORA(1)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       OBJ
+       -1       COSTESINCOCHES(1)
+
+CONSUMOPORHORA(2)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       OBJ
+       -1       COSTESINCOCHES(2)
+
+CONSUMOPORHORA(3)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       OBJ
+       -1       COSTESINCOCHES(3)
+
+REMAINING 21 ENTRIES SKIPPED
+GAMS Rev 235  WEX-WEI 23.5.2 x86_64/MS Windows          05/03/17 20:32:31 Page 4
+Programa-v4
+Model Statistics    SOLVE progSinCoches Using LP From line 204
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           2     SINGLE EQUATIONS           25
+BLOCKS OF VARIABLES           2     SINGLE VARIABLES           25
+NON ZERO ELEMENTS            49
+
+
+GENERATION TIME      =        0.000 SECONDS      4 Mb  WEX235-235 Aug 17, 2010
+
+
+EXECUTION TIME       =        0.016 SECONDS      4 Mb  WEX235-235 Aug 17, 2010
+GAMS Rev 235  WEX-WEI 23.5.2 x86_64/MS Windows          05/03/17 20:32:31 Page 5
+Programa-v4
+Solution Report     SOLVE progSinCoches Using LP From line 204
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   progSinCoches       OBJECTIVE  F
+     TYPE    LP                  DIRECTION  MINIMIZE
+     SOLVER  CPLEX               FROM LINE  204
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      1 Optimal                   
+**** OBJECTIVE VALUE            13725.2000
+
+ RESOURCE USAGE, LIMIT          0.013      1000.000
+ ITERATION COUNT, LIMIT         0    2000000000
+
+IBM ILOG CPLEX   Aug 18, 2010 23.5.2 WEX 19143.19383 WEI x86_64/MS Windows
+Cplex 12.2.0.0, GAMS Link 34 
+
+LP status(1): optimal
+Optimal solution found.
+Objective :       13725.200000
+
+
+                       LOWER     LEVEL     UPPER    MARGINAL
+
+---- EQU OBJ             .         .         .        1.000      
+
+  OBJ  La función objetivo
+
+---- EQU COSTESINCOCHES  Función para comparar el coste si no se usase este algo
+                         ritmo
+
+      LOWER     LEVEL     UPPER    MARGINAL
+
+1   -150.000  -150.000  -150.000    -1.000      
+2   -180.000  -180.000  -180.000    -1.000      
+3   -280.000  -280.000  -280.000    -1.000      
+4   -180.000  -180.000  -180.000    -1.000      
+5   -210.000  -210.000  -210.000    -1.000      
+6   -280.000  -280.000  -280.000    -1.000      
+7   -360.000  -360.000  -360.000    -1.000      
+8   -654.000  -654.000  -654.000    -1.000      
+9  -1024.000 -1024.000 -1024.000    -1.000      
+10  -970.000  -970.000  -970.000    -1.000      
+11  -965.000  -965.000  -965.000    -1.000      
+12  -774.000  -774.000  -774.000    -1.000      
+13  -529.900  -529.900  -529.900    -1.000      
+14  -333.000  -333.000  -333.000    -1.000      
+15  -333.000  -333.000  -333.000    -1.000      
+16  -604.800  -604.800  -604.800    -1.000      
+17  -860.000  -860.000  -860.000    -1.000      
+18 -1061.500 -1061.500 -1061.500    -1.000      
+19 -1776.000 -1776.000 -1776.000    -1.000      
+20 -1290.000 -1290.000 -1290.000    -1.000      
+21  -640.000  -640.000  -640.000    -1.000      
+22   -90.000   -90.000   -90.000    -1.000      
+23   -90.000   -90.000   -90.000    -1.000      
+24   -90.000   -90.000   -90.000    -1.000      
+
+                       LOWER     LEVEL     UPPER    MARGINAL
+
+---- VAR F              -INF  13725.200     +INF       .         
+
+---- VAR CONSUMOPORHORA  
+
+      LOWER     LEVEL     UPPER    MARGINAL
+
+1       .      150.000     +INF       .         
+2       .      180.000     +INF       .         
+3       .      280.000     +INF       .         
+4       .      180.000     +INF       .         
+5       .      210.000     +INF       .         
+6       .      280.000     +INF       .         
+7       .      360.000     +INF       .         
+8       .      654.000     +INF       .         
+9       .     1024.000     +INF       .         
+10      .      970.000     +INF       .         
+11      .      965.000     +INF       .         
+12      .      774.000     +INF       .         
+13      .      529.900     +INF       .         
+14      .      333.000     +INF       .         
+15      .      333.000     +INF       .         
+16      .      604.800     +INF       .         
+17      .      860.000     +INF       .         
+18      .     1061.500     +INF       .         
+19      .     1776.000     +INF       .         
+20      .     1290.000     +INF       .         
+21      .      640.000     +INF       .         
+22      .       90.000     +INF       .         
+23      .       90.000     +INF       .         
+24      .       90.000     +INF       .         
+
+
+**** REPORT SUMMARY :        0     NONOPT
+                             0 INFEASIBLE
+                             0  UNBOUNDED
+GAMS Rev 235  WEX-WEI 23.5.2 x86_64/MS Windows          05/03/17 20:32:31 Page 6
+Programa-v4
+Equation Listing    SOLVE progConCoches Using LP From line 205
+
+
+---- OBJ  =E=  La función objetivo
+
+OBJ..  F - CONSUMOPORHORA(1) - CONSUMOPORHORA(2) - CONSUMOPORHORA(3)
+     
+      - CONSUMOPORHORA(4) - CONSUMOPORHORA(5) - CONSUMOPORHORA(6)
+     
+      - CONSUMOPORHORA(7) - CONSUMOPORHORA(8) - CONSUMOPORHORA(9)
+     
+      - CONSUMOPORHORA(10) - CONSUMOPORHORA(11) - CONSUMOPORHORA(12)
+     
+      - CONSUMOPORHORA(13) - CONSUMOPORHORA(14) - CONSUMOPORHORA(15)
+     
+      - CONSUMOPORHORA(16) - CONSUMOPORHORA(17) - CONSUMOPORHORA(18)
+     
+      - CONSUMOPORHORA(19) - CONSUMOPORHORA(20) - CONSUMOPORHORA(21)
+     
+      - CONSUMOPORHORA(22) - CONSUMOPORHORA(23) - CONSUMOPORHORA(24) =E= 0 ;
+     
+      (LHS = 0)
+     
+
+---- ITERACION  =E=  Función de las horas 1 a la 24
+
+ITERACION(1)..  - CONSUMOPORHORA(1) =E= -150 ; (LHS = -150)
+     
+ITERACION(2)..  - CONSUMOPORHORA(2) =E= -180 ; (LHS = -180)
+     
+ITERACION(3)..  - CONSUMOPORHORA(3) =E= -280 ; (LHS = -280)
+     
+REMAINING 21 ENTRIES SKIPPED
+
+
+---- CAPACIDADMAX  =L=  Funcion que condiciona la carga de la batería a la capac
+                        idad
+
+CAPACIDADMAX(1,1)..  CARGA(1,1) =L= 24 ; (LHS = 18)
+     
+CAPACIDADMAX(1,2)..  CARGA(1,2) =L= 24 ; (LHS = 18)
+     
+CAPACIDADMAX(1,3)..  CARGA(1,3) =L= 24 ; (LHS = 18)
+     
+REMAINING 117 ENTRIES SKIPPED
+
+
+---- CARGAMAX  =L=  Función que condiciona la carga  por hora máxima a 3.68 kWh
+
+CARGAMAX(1,1)..  - CARGA(1,1) + CARGA(1,2) =L= 3.68 ; (LHS = 0)
+     
+CARGAMAX(1,2)..  - CARGA(1,2) + CARGA(1,3) =L= 3.68 ; (LHS = 0)
+     
+CARGAMAX(1,3)..  - CARGA(1,3) + CARGA(1,4) =L= 3.68 ; (LHS = 0)
+     
+REMAINING 117 ENTRIES SKIPPED
+
+
+---- DESCARGAMAX  =G=  Función que condiciona la descarga  por hora máxima a 3.6
+                       8 kWh
+
+DESCARGAMAX(1,1)..  CARGA(1,1) =G= -3.68 ; (LHS = 18)
+     
+DESCARGAMAX(1,2)..  - CARGA(1,1) + CARGA(1,2) =G= -3.68 ; (LHS = 0)
+     
+DESCARGAMAX(1,3)..  - CARGA(1,2) + CARGA(1,3) =G= -3.68 ; (LHS = 0)
+     
+REMAINING 117 ENTRIES SKIPPED
+
+GAMS Rev 235  WEX-WEI 23.5.2 x86_64/MS Windows          05/03/17 20:32:31 Page 7
+Programa-v4
+Column Listing      SOLVE progConCoches Using LP From line 205
+
+
+---- F  
+
+F
+                (.LO, .L, .UP, .M = -INF, 13725.2, +INF, 0)
+        1       OBJ
+
+
+---- CARGA  
+
+CARGA(1,1)
+                (.LO, .L, .UP, .M = 18, 18, 18, 0)
+        1       CAPACIDADMAX(1,1)
+       -1       CARGAMAX(1,1)
+        1       DESCARGAMAX(1,1)
+       -1       DESCARGAMAX(1,2)
+
+CARGA(1,2)
+                (.LO, .L, .UP, .M = 18, 18, 18, 0)
+        1       CAPACIDADMAX(1,2)
+        1       CARGAMAX(1,1)
+       -1       CARGAMAX(1,2)
+        1       DESCARGAMAX(1,2)
+       -1       DESCARGAMAX(1,3)
+
+CARGA(1,3)
+                (.LO, .L, .UP, .M = 18, 18, 18, 0)
+        1       CAPACIDADMAX(1,3)
+        1       CARGAMAX(1,2)
+       -1       CARGAMAX(1,3)
+        1       DESCARGAMAX(1,3)
+       -1       DESCARGAMAX(1,4)
+
+REMAINING 117 ENTRIES SKIPPED
+
+---- CONSUMOPORHORA  
+
+CONSUMOPORHORA(1)
+                (.LO, .L, .UP, .M = 0, 150, +INF, 0)
+       -1       OBJ
+       -1       ITERACION(1)
+
+CONSUMOPORHORA(2)
+                (.LO, .L, .UP, .M = 0, 180, +INF, 0)
+       -1       OBJ
+       -1       ITERACION(2)
+
+CONSUMOPORHORA(3)
+                (.LO, .L, .UP, .M = 0, 280, +INF, 0)
+       -1       OBJ
+       -1       ITERACION(3)
+
+REMAINING 21 ENTRIES SKIPPED
+GAMS Rev 235  WEX-WEI 23.5.2 x86_64/MS Windows          05/03/17 20:32:31 Page 8
+Programa-v4
+Model Statistics    SOLVE progConCoches Using LP From line 205
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           5     SINGLE EQUATIONS          385
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES          145  36 projected
+NON ZERO ELEMENTS           739
+
+
+GENERATION TIME      =        0.016 SECONDS      3 Mb  WEX235-235 Aug 17, 2010
+
+
+EXECUTION TIME       =        0.016 SECONDS      3 Mb  WEX235-235 Aug 17, 2010
+GAMS Rev 235  WEX-WEI 23.5.2 x86_64/MS Windows          05/03/17 20:32:31 Page 9
+Programa-v4
+Solution Report     SOLVE progConCoches Using LP From line 205
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   progConCoches       OBJECTIVE  F
+     TYPE    LP                  DIRECTION  MINIMIZE
+     SOLVER  CPLEX               FROM LINE  205
+
+**** SOLVER STATUS     1 Normal Completion         
+**** MODEL STATUS      1 Optimal                   
+**** OBJECTIVE VALUE            13446.1200
+
+ RESOURCE USAGE, LIMIT          0.016      1000.000
+ ITERATION COUNT, LIMIT        40    2000000000
+
+IBM ILOG CPLEX   Aug 18, 2010 23.5.2 WEX 19143.19383 WEI x86_64/MS Windows
+Cplex 12.2.0.0, GAMS Link 34 
+GAMS/Cplex licensed for continuous and discrete problems.
+
+LP status(1): optimal
+Optimal solution found.
+Objective :       13446.120000
+
+
+                       LOWER     LEVEL     UPPER    MARGINAL
+
+---- EQU OBJ             .         .         .        1.000      
+
+  OBJ  La función objetivo
+
+---- EQU ITERACION  Función de las horas 1 a la 24
+
+      LOWER     LEVEL     UPPER    MARGINAL
+
+1   -150.000  -150.000  -150.000    -1.000      
+2   -180.000  -180.000  -180.000    -1.000      
+3   -280.000  -280.000  -280.000    -1.000      
+4   -180.000  -180.000  -180.000    -1.000      
+5   -210.000  -210.000  -210.000    -1.000      
+6   -280.000  -280.000  -280.000    -1.000      
+7   -360.000  -360.000  -360.000    -1.000      
+8   -654.000  -654.000  -654.000    -1.000      
+9  -1024.000 -1024.000 -1024.000    -1.000      
+10  -970.000  -970.000  -970.000    -1.000      
+11  -965.000  -965.000  -965.000    -1.000      
+12  -774.000  -774.000  -774.000    -1.000      
+13  -529.900  -529.900  -529.900    -1.000      
+14  -333.000  -333.000  -333.000    -1.000      
+15  -333.000  -333.000  -333.000    -1.000      
+16  -604.800  -604.800  -604.800    -1.000      
+17  -860.000  -860.000  -860.000    -1.000      
+18 -1061.500 -1061.500 -1061.500    -1.000      
+19 -1776.000 -1776.000 -1776.000    -1.000      
+20 -1290.000 -1290.000 -1290.000    -1.000      
+21  -640.000  -640.000  -640.000    -1.000      
+22   -90.000   -90.000   -90.000    -1.000      
+23   -90.000   -90.000   -90.000    -1.000      
+24   -90.000   -90.000   -90.000    -1.000      
+
+---- EQU CAPACIDADMAX  Funcion que condiciona la carga de la batería a la capaci
+                       dad
+
+        LOWER     LEVEL     UPPER    MARGINAL
+
+1.1      -INF     18.000    24.000      .         
+1.2      -INF     18.000    24.000      .         
+1.3      -INF     18.000    24.000      .         
+1.4      -INF     18.000    24.000      .         
+1.5      -INF     18.000    24.000      .         
+1.6      -INF     18.000    24.000      .         
+1.7      -INF     18.000    24.000      .         
+1.8      -INF     18.000    24.000      .         
+1.9      -INF     18.000    24.000      .         
+1.10     -INF     18.000    24.000      .         
+1.11     -INF     18.000    24.000      .         
+1.12     -INF     14.320    24.000      .         
+1.13     -INF     14.320    24.000      .         
+1.14     -INF     18.000    24.000      .         
+1.15     -INF     21.680    24.000      .         
+1.16     -INF     18.000    24.000      .         
+1.17     -INF     18.000    24.000      .         
+1.18     -INF     18.000    24.000      .         
+1.19     -INF     18.000    24.000      .         
+1.20     -INF     18.000    24.000      .         
+1.21     -INF     18.000    24.000      .         
+1.22     -INF     18.000    24.000      .         
+1.23     -INF     18.000    24.000      .         
+1.24     -INF     18.000    24.000      .         
+2.1      -INF     20.000    24.000      .         
+2.2      -INF     20.000    24.000      .         
+2.3      -INF     20.000    24.000      .         
+2.4      -INF     20.000    24.000      .         
+2.5      -INF     20.000    24.000      .         
+2.6      -INF     20.000    24.000      .         
+2.7      -INF     20.000    24.000      .         
+2.8      -INF     20.000    24.000      .         
+2.9      -INF     20.000    24.000      .         
+2.10     -INF     16.320    24.000      .         
+2.11     -INF     12.640    24.000      .         
+2.12     -INF      9.280    24.000      .         
+2.13     -INF     12.960    24.000      .         
+2.14     -INF     16.640    24.000      .         
+2.15     -INF     20.320    24.000      .         
+2.16     -INF     24.000    24.000    -1.000      
+2.17     -INF     24.000    24.000      EPS       
+2.18     -INF     20.320    24.000      .         
+2.19     -INF     16.640    24.000      .         
+2.20     -INF     18.000    24.000      .         
+2.21     -INF     18.000    24.000      .         
+2.22     -INF     18.000    24.000      .         
+2.23     -INF     18.000    24.000      .         
+2.24     -INF     18.000    24.000      .         
+3.1      -INF     22.000    24.000      .         
+3.2      -INF     22.000    24.000      .         
+3.3      -INF     22.000    24.000      .         
+3.4      -INF     22.000    24.000      .         
+3.5      -INF     22.000    24.000      .         
+3.6      -INF     22.000    24.000      .         
+3.7      -INF     22.000    24.000      .         
+3.8      -INF     22.000    24.000      .         
+3.9      -INF     21.680    24.000      .         
+3.10     -INF     18.000    24.000      .         
+3.11     -INF     14.320    24.000      .         
+3.12     -INF     10.640    24.000      .         
+3.13     -INF     14.320    24.000      .         
+3.14     -INF     18.000    24.000      .         
+3.15     -INF     18.000    24.000      .         
+3.16     -INF     18.000    24.000      .         
+3.17     -INF     18.000    24.000      .         
+3.18     -INF     18.000    24.000      .         
+3.19     -INF     18.000    24.000      .         
+3.20     -INF     18.000    24.000      .         
+3.21     -INF     18.000    24.000      .         
+3.22     -INF     18.000    24.000      .         
+3.23     -INF     18.000    24.000      .         
+3.24     -INF     18.000    24.000      .         
+4.1      -INF     19.000    24.000      .         
+4.2      -INF     19.000    24.000      .         
+4.3      -INF     19.000    24.000      .         
+4.4      -INF     19.000    24.000      .         
+4.5      -INF     19.000    24.000      .         
+4.6      -INF     19.000    24.000      .         
+4.7      -INF     19.000    24.000      .         
+4.8      -INF     22.680    24.000      .         
+4.9      -INF     20.320    24.000      .         
+4.10     -INF     16.640    24.000      .         
+4.11     -INF     12.960    24.000      .         
+4.12     -INF      9.280    24.000      .         
+4.13     -INF     12.960    24.000      .         
+4.14     -INF     16.640    24.000      .         
+4.15     -INF     20.320    24.000      .         
+4.16     -INF     24.000    24.000    -2.000      
+4.17     -INF     21.680    24.000      .         
+4.18     -INF     18.000    24.000      .         
+4.19     -INF     18.000    24.000      .         
+4.20     -INF     18.000    24.000      .         
+4.21     -INF     18.000    24.000      .         
+4.22     -INF     18.000    24.000      .         
+4.23     -INF     18.000    24.000      .         
+4.24     -INF     18.000    24.000      .         
+5.1      -INF     17.000    24.000      .         
+5.2      -INF     17.000    24.000      .         
+5.3      -INF     17.000    24.000      .         
+5.4      -INF     17.000    24.000      .         
+5.5      -INF     17.000    24.000      .         
+5.6      -INF     17.000    24.000      .         
+5.7      -INF     17.000    24.000      .         
+5.8      -INF     17.000    24.000      .         
+5.9      -INF     17.000    24.000      .         
+5.10     -INF     13.320    24.000      .         
+5.11     -INF      9.640    24.000      .         
+5.12     -INF      9.280    24.000      .         
+5.13     -INF     12.960    24.000      .         
+5.14     -INF     16.640    24.000      .         
+5.15     -INF     20.320    24.000      .         
+5.16     -INF     24.000    24.000    -1.000      
+5.17     -INF     20.320    24.000      .         
+5.18     -INF     16.640    24.000      .         
+5.19     -INF     12.960    24.000      .         
+5.20     -INF     14.320    24.000      .         
+5.21     -INF     18.000    24.000      .         
+5.22     -INF     18.000    24.000      .         
+5.23     -INF     18.000    24.000      .         
+5.24     -INF     18.000    24.000      .         
+
+---- EQU CARGAMAX  Función que condiciona la carga  por hora máxima a 3.68 kWh
+
+        LOWER     LEVEL     UPPER    MARGINAL
+
+1.1      -INF  4.441E-16     3.680      .         
+1.2      -INF  4.441E-16     3.680      .         
+1.3      -INF  4.441E-16     3.680      .         
+1.4      -INF  4.441E-16     3.680      .         
+1.5      -INF  4.441E-16     3.680      .         
+1.6      -INF  4.441E-16     3.680      .         
+1.7      -INF  4.441E-16     3.680      .         
+1.8      -INF  4.441E-16     3.680      .         
+1.9      -INF  4.441E-16     3.680      .         
+1.10     -INF  4.441E-16     3.680      .         
+1.11     -INF     -3.680     3.680      .         
+1.12     -INF  4.441E-16     3.680      .         
+1.13     -INF      3.680     3.680    -1.000      
+1.14     -INF      3.680     3.680    -1.000      
+1.15     -INF     -3.680     3.680      .         
+1.16     -INF  4.441E-16     3.680      .         
+1.17     -INF  4.441E-16     3.680      .         
+1.18     -INF  4.441E-16     3.680      .         
+1.19     -INF  4.441E-16     3.680      .         
+1.20     -INF  4.441E-16     3.680      .         
+1.21     -INF  4.441E-16     3.680      .         
+1.22     -INF  4.441E-16     3.680      .         
+1.23     -INF  4.441E-16     3.680      .         
+1.24     -INF    -18.000     3.680      .         
+2.1      -INF  4.441E-16     3.680      .         
+2.2      -INF  4.441E-16     3.680      .         
+2.3      -INF  4.441E-16     3.680      .         
+2.4      -INF  4.441E-16     3.680      .         
+2.5      -INF  4.441E-16     3.680      .         
+2.6      -INF  4.441E-16     3.680      .         
+2.7      -INF  4.441E-16     3.680      .         
+2.8      -INF  4.441E-16     3.680      .         
+2.9      -INF     -3.680     3.680      .         
+2.10     -INF     -3.680     3.680      .         
+2.11     -INF     -3.360     3.680      .         
+2.12     -INF      3.680     3.680    -2.000      
+2.13     -INF      3.680     3.680    -3.000      
+2.14     -INF      3.680     3.680    -3.000      
+2.15     -INF      3.680     3.680    -1.000      
+2.16     -INF  4.441E-16     3.680      .         
+2.17     -INF     -3.680     3.680      .         
+2.18     -INF     -3.680     3.680      .         
+2.19     -INF      1.360     3.680      .         
+2.20     -INF  4.441E-16     3.680      .         
+2.21     -INF  4.441E-16     3.680      .         
+2.22     -INF  4.441E-16     3.680      .         
+2.23     -INF  4.441E-16     3.680      .         
+2.24     -INF    -18.000     3.680      .         
+3.1      -INF  4.441E-16     3.680      .         
+3.2      -INF  4.441E-16     3.680      .         
+3.3      -INF  4.441E-16     3.680      .         
+3.4      -INF  4.441E-16     3.680      .         
+3.5      -INF  4.441E-16     3.680      .         
+3.6      -INF  4.441E-16     3.680      .         
+3.7      -INF  4.441E-16     3.680      .         
+3.8      -INF     -0.320     3.680      .         
+3.9      -INF     -3.680     3.680      .         
+3.10     -INF     -3.680     3.680      .         
+3.11     -INF     -3.680     3.680      .         
+3.12     -INF      3.680     3.680    -1.000      
+3.13     -INF      3.680     3.680    -2.000      
+3.14     -INF  4.441E-16     3.680      .         
+3.15     -INF  4.441E-16     3.680      .         
+3.16     -INF  4.441E-16     3.680      .         
+3.17     -INF  4.441E-16     3.680      .         
+3.18     -INF  4.441E-16     3.680      .         
+3.19     -INF  4.441E-16     3.680      .         
+3.20     -INF  4.441E-16     3.680      .         
+3.21     -INF  4.441E-16     3.680      .         
+3.22     -INF  4.441E-16     3.680      .         
+3.23     -INF  4.441E-16     3.680      .         
+3.24     -INF    -18.000     3.680      .         
+4.1      -INF  4.441E-16     3.680      .         
+4.2      -INF  4.441E-16     3.680      .         
+4.3      -INF  4.441E-16     3.680      .         
+4.4      -INF  4.441E-16     3.680      .         
+4.5      -INF  4.441E-16     3.680      .         
+4.6      -INF  4.441E-16     3.680      .         
+4.7      -INF      3.680     3.680    -2.000      
+4.8      -INF     -2.360     3.680      .         
+4.9      -INF     -3.680     3.680      .         
+4.10     -INF     -3.680     3.680      .         
+4.11     -INF     -3.680     3.680      .         
+4.12     -INF      3.680     3.680    -1.000      
+4.13     -INF      3.680     3.680    -2.000      
+4.14     -INF      3.680     3.680    -2.000      
+4.15     -INF      3.680     3.680      EPS       
+4.16     -INF     -2.320     3.680      .         
+4.17     -INF     -3.680     3.680      .         
+4.18     -INF  4.441E-16     3.680      .         
+4.19     -INF  4.441E-16     3.680      .         
+4.20     -INF  4.441E-16     3.680      .         
+4.21     -INF  4.441E-16     3.680      .         
+4.22     -INF  4.441E-16     3.680      .         
+4.23     -INF  4.441E-16     3.680      .         
+4.24     -INF    -18.000     3.680      .         
+5.1      -INF  4.441E-16     3.680      .         
+5.2      -INF  4.441E-16     3.680      .         
+5.3      -INF  4.441E-16     3.680      .         
+5.4      -INF  4.441E-16     3.680      .         
+5.5      -INF  4.441E-16     3.680      .         
+5.6      -INF  4.441E-16     3.680      .         
+5.7      -INF  4.441E-16     3.680      .         
+5.8      -INF  4.441E-16     3.680      .         
+5.9      -INF     -3.680     3.680      .         
+5.10     -INF     -3.680     3.680      .         
+5.11     -INF     -0.360     3.680      .         
+5.12     -INF      3.680     3.680    -2.000      
+5.13     -INF      3.680     3.680    -3.000      
+5.14     -INF      3.680     3.680    -3.000      
+5.15     -INF      3.680     3.680    -1.000      
+5.16     -INF     -3.680     3.680      .         
+5.17     -INF     -3.680     3.680      .         
+5.18     -INF     -3.680     3.680      .         
+5.19     -INF      1.360     3.680      .         
+5.20     -INF      3.680     3.680    -2.000      
+5.21     -INF  4.441E-16     3.680      .         
+5.22     -INF  4.441E-16     3.680      .         
+5.23     -INF  4.441E-16     3.680      .         
+5.24     -INF    -18.000     3.680      .         
+
+---- EQU DESCARGAMAX  Función que condiciona la descarga  por hora máxima a 3.68
+                      kWh
+
+        LOWER     LEVEL     UPPER    MARGINAL
+
+1.1     -3.680    18.000     +INF       .         
+1.2     -3.680 -4.44E-16     +INF       .         
+1.3     -3.680 -4.44E-16     +INF       .         
+1.4     -3.680 -4.44E-16     +INF       .         
+1.5     -3.680 -4.44E-16     +INF       .         
+1.6     -3.680 -4.44E-16     +INF       .         
+1.7     -3.680 -4.44E-16     +INF       .         
+1.8     -3.680 -4.44E-16     +INF       .         
+1.9     -3.680 -4.44E-16     +INF       .         
+1.10    -3.680 -4.44E-16     +INF       .         
+1.11    -3.680 -4.44E-16     +INF       .         
+1.12    -3.680    -3.680     +INF      2.000      
+1.13    -3.680 -4.44E-16     +INF       .         
+1.14    -3.680     3.680     +INF       .         
+1.15    -3.680     3.680     +INF       .         
+1.16    -3.680    -3.680     +INF      1.000      
+1.17    -3.680 -4.44E-16     +INF       .         
+1.18    -3.680 -4.44E-16     +INF       .         
+1.19    -3.680 -4.44E-16     +INF       .         
+1.20    -3.680 -4.44E-16     +INF       .         
+1.21    -3.680 -4.44E-16     +INF       .         
+1.22    -3.680 -4.44E-16     +INF       .         
+1.23    -3.680 -4.44E-16     +INF       .         
+1.24    -3.680 -4.44E-16     +INF       .         
+2.1     -3.680    20.000     +INF       .         
+2.2     -3.680 -4.44E-16     +INF       .         
+2.3     -3.680 -4.44E-16     +INF       .         
+2.4     -3.680 -4.44E-16     +INF       .         
+2.5     -3.680 -4.44E-16     +INF       .         
+2.6     -3.680 -4.44E-16     +INF       .         
+2.7     -3.680 -4.44E-16     +INF       .         
+2.8     -3.680 -4.44E-16     +INF       .         
+2.9     -3.680 -4.44E-16     +INF       .         
+2.10    -3.680    -3.680     +INF      1.000      
+2.11    -3.680    -3.680     +INF      1.000      
+2.12    -3.680    -3.360     +INF       .         
+2.13    -3.680     3.680     +INF       .         
+2.14    -3.680     3.680     +INF       .         
+2.15    -3.680     3.680     +INF       .         
+2.16    -3.680     3.680     +INF       .         
+2.17    -3.680 -4.44E-16     +INF       .         
+2.18    -3.680    -3.680     +INF      1.000      
+2.19    -3.680    -3.680     +INF      2.000      
+2.20    -3.680     1.360     +INF       .         
+2.21    -3.680 -4.44E-16     +INF       .         
+2.22    -3.680 -4.44E-16     +INF       .         
+2.23    -3.680 -4.44E-16     +INF       .         
+2.24    -3.680 -4.44E-16     +INF       .         
+3.1     -3.680    22.000     +INF       .         
+3.2     -3.680 -4.44E-16     +INF       .         
+3.3     -3.680 -4.44E-16     +INF       .         
+3.4     -3.680 -4.44E-16     +INF       .         
+3.5     -3.680 -4.44E-16     +INF       .         
+3.6     -3.680 -4.44E-16     +INF       .         
+3.7     -3.680 -4.44E-16     +INF       .         
+3.8     -3.680 -4.44E-16     +INF       .         
+3.9     -3.680    -0.320     +INF       .         
+3.10    -3.680    -3.680     +INF      2.000      
+3.11    -3.680    -3.680     +INF      2.000      
+3.12    -3.680    -3.680     +INF      1.000      
+3.13    -3.680     3.680     +INF       .         
+3.14    -3.680     3.680     +INF       .         
+3.15    -3.680 -4.44E-16     +INF       .         
+3.16    -3.680 -4.44E-16     +INF       .         
+3.17    -3.680 -4.44E-16     +INF       .         
+3.18    -3.680 -4.44E-16     +INF       .         
+3.19    -3.680 -4.44E-16     +INF       .         
+3.20    -3.680 -4.44E-16     +INF       .         
+3.21    -3.680 -4.44E-16     +INF       .         
+3.22    -3.680 -4.44E-16     +INF       .         
+3.23    -3.680 -4.44E-16     +INF       .         
+3.24    -3.680 -4.44E-16     +INF       .         
+4.1     -3.680    19.000     +INF       .         
+4.2     -3.680 -4.44E-16     +INF       .         
+4.3     -3.680 -4.44E-16     +INF       .         
+4.4     -3.680 -4.44E-16     +INF       .         
+4.5     -3.680 -4.44E-16     +INF       .         
+4.6     -3.680 -4.44E-16     +INF       .         
+4.7     -3.680 -4.44E-16     +INF       .         
+4.8     -3.680     3.680     +INF       .         
+4.9     -3.680    -2.360     +INF       .         
+4.10    -3.680    -3.680     +INF      2.000      
+4.11    -3.680    -3.680     +INF      2.000      
+4.12    -3.680    -3.680     +INF      1.000      
+4.13    -3.680     3.680     +INF       .         
+4.14    -3.680     3.680     +INF       .         
+4.15    -3.680     3.680     +INF       .         
+4.16    -3.680     3.680     +INF       .         
+4.17    -3.680    -2.320     +INF       .         
+4.18    -3.680    -3.680     +INF      1.000      
+4.19    -3.680 -4.44E-16     +INF       .         
+4.20    -3.680 -4.44E-16     +INF       .         
+4.21    -3.680 -4.44E-16     +INF       .         
+4.22    -3.680 -4.44E-16     +INF       .         
+4.23    -3.680 -4.44E-16     +INF       .         
+4.24    -3.680 -4.44E-16     +INF       .         
+5.1     -3.680    17.000     +INF       .         
+5.2     -3.680 -4.44E-16     +INF       .         
+5.3     -3.680 -4.44E-16     +INF       .         
+5.4     -3.680 -4.44E-16     +INF       .         
+5.5     -3.680 -4.44E-16     +INF       .         
+5.6     -3.680 -4.44E-16     +INF       .         
+5.7     -3.680 -4.44E-16     +INF       .         
+5.8     -3.680 -4.44E-16     +INF       .         
+5.9     -3.680 -4.44E-16     +INF       .         
+5.10    -3.680    -3.680     +INF      1.000      
+5.11    -3.680    -3.680     +INF      1.000      
+5.12    -3.680    -0.360     +INF       .         
+5.13    -3.680     3.680     +INF       .         
+5.14    -3.680     3.680     +INF       .         
+5.15    -3.680     3.680     +INF       .         
+5.16    -3.680     3.680     +INF       .         
+5.17    -3.680    -3.680     +INF       EPS       
+5.18    -3.680    -3.680     +INF      1.000      
+5.19    -3.680    -3.680     +INF      2.000      
+5.20    -3.680     1.360     +INF       .         
+5.21    -3.680     3.680     +INF       .         
+5.22    -3.680 -4.44E-16     +INF       .         
+5.23    -3.680 -4.44E-16     +INF       .         
+5.24    -3.680 -4.44E-16     +INF       .         
+
+                       LOWER     LEVEL     UPPER    MARGINAL
+
+---- VAR F              -INF  13446.120     +INF       .         
+
+---- VAR CARGA  
+
+        LOWER     LEVEL     UPPER    MARGINAL
+
+1.1     18.000    18.000    18.000      EPS       
+1.2     18.000    18.000    18.000      EPS       
+1.3     18.000    18.000    18.000      EPS       
+1.4     18.000    18.000    18.000      EPS       
+1.5     18.000    18.000    18.000      EPS       
+1.6     18.000    18.000    18.000      EPS       
+1.7     18.000    18.000    18.000      EPS       
+1.8     18.000    18.000    18.000      EPS       
+1.9     18.000    18.000    18.000      EPS       
+1.10    18.000    18.000    18.000   -10.000      
+1.11    18.000    18.000    18.000     3.000      
+1.12      .       14.320     +INF       .         
+1.13      .       14.320     +INF       .         
+1.14      .       18.000     +INF       .         
+1.15      .       21.680     +INF       .         
+1.16    18.000    18.000     +INF      7.000      
+1.17    18.000    18.000     +INF       EPS       
+1.18    18.000    18.000     +INF       EPS       
+1.19    18.000    18.000     +INF       EPS       
+1.20    18.000    18.000     +INF       EPS       
+1.21    18.000    18.000     +INF       EPS       
+1.22    18.000    18.000     +INF       EPS       
+1.23    18.000    18.000     +INF       EPS       
+1.24    18.000    18.000     +INF       EPS       
+2.1     20.000    20.000    20.000      EPS       
+2.2     20.000    20.000    20.000      EPS       
+2.3     20.000    20.000    20.000      EPS       
+2.4     20.000    20.000    20.000      EPS       
+2.5     20.000    20.000    20.000      EPS       
+2.6     20.000    20.000    20.000      EPS       
+2.7     20.000    20.000    20.000      EPS       
+2.8     20.000    20.000    20.000    -8.000      
+2.9     20.000    20.000    20.000    -1.000      
+2.10      .       16.320     +INF       .         
+2.11      .       12.640     +INF       .         
+2.12      .        9.280     +INF       .         
+2.13      .       12.960     +INF       .         
+2.14      .       16.640     +INF       .         
+2.15      .       20.320     +INF       .         
+2.16      .       24.000     +INF       .         
+2.17      .       24.000     +INF       .         
+2.18      .       20.320     +INF       .         
+2.19      .       16.640     +INF       .         
+2.20    18.000    18.000     +INF     10.000      
+2.21    18.000    18.000     +INF       EPS       
+2.22    18.000    18.000     +INF       EPS       
+2.23    18.000    18.000     +INF       EPS       
+2.24    18.000    18.000     +INF       EPS       
+3.1     22.000    22.000    22.000      EPS       
+3.2     22.000    22.000    22.000      EPS       
+3.3     22.000    22.000    22.000      EPS       
+3.4     22.000    22.000    22.000      EPS       
+3.5     22.000    22.000    22.000      EPS       
+3.6     22.000    22.000    22.000      EPS       
+3.7     22.000    22.000    22.000    -6.000      
+3.8     22.000    22.000    22.000    -2.000      
+3.9       .       21.680     +INF       .         
+3.10      .       18.000     +INF       .         
+3.11      .       14.320     +INF       .         
+3.12      .       10.640     +INF       .         
+3.13      .       14.320     +INF       .         
+3.14    18.000    18.000     +INF      8.000      
+3.15    18.000    18.000     +INF       EPS       
+3.16    18.000    18.000     +INF       EPS       
+3.17    18.000    18.000     +INF       EPS       
+3.18    18.000    18.000     +INF       EPS       
+3.19    18.000    18.000     +INF       EPS       
+3.20    18.000    18.000     +INF       EPS       
+3.21    18.000    18.000     +INF       EPS       
+3.22    18.000    18.000     +INF       EPS       
+3.23    18.000    18.000     +INF       EPS       
+3.24    18.000    18.000     +INF       EPS       
+4.1     19.000    19.000    19.000      EPS       
+4.2     19.000    19.000    19.000      EPS       
+4.3     19.000    19.000    19.000      EPS       
+4.4     19.000    19.000    19.000      EPS       
+4.5     19.000    19.000    19.000      EPS       
+4.6     19.000    19.000    19.000    -4.000      
+4.7     19.000    19.000    19.000    -4.000      
+4.8       .       22.680     +INF       .         
+4.9       .       20.320     +INF       .         
+4.10      .       16.640     +INF       .         
+4.11      .       12.960     +INF       .         
+4.12      .        9.280     +INF       .         
+4.13      .       12.960     +INF       .         
+4.14      .       16.640     +INF       .         
+4.15      .       20.320     +INF       .         
+4.16      .       24.000     +INF       .         
+4.17      .       21.680     +INF       .         
+4.18    18.000    18.000     +INF     10.000      
+4.19    18.000    18.000     +INF       EPS       
+4.20    18.000    18.000     +INF       EPS       
+4.21    18.000    18.000     +INF       EPS       
+4.22    18.000    18.000     +INF       EPS       
+4.23    18.000    18.000     +INF       EPS       
+4.24    18.000    18.000     +INF       EPS       
+5.1     17.000    17.000    17.000      EPS       
+5.2     17.000    17.000    17.000      EPS       
+5.3     17.000    17.000    17.000      EPS       
+5.4     17.000    17.000    17.000      EPS       
+5.5     17.000    17.000    17.000      EPS       
+5.6     17.000    17.000    17.000      EPS       
+5.7     17.000    17.000    17.000      EPS       
+5.8     17.000    17.000    17.000    -8.000      
+5.9     17.000    17.000    17.000    -1.000      
+5.10      .       13.320     +INF       .         
+5.11      .        9.640     +INF       .         
+5.12      .        9.280     +INF       .         
+5.13      .       12.960     +INF       .         
+5.14      .       16.640     +INF       .         
+5.15      .       20.320     +INF       .         
+5.16      .       24.000     +INF       .         
+5.17      .       20.320     +INF       .         
+5.18      .       16.640     +INF       .         
+5.19      .       12.960     +INF       .         
+5.20      .       14.320     +INF       .         
+5.21    18.000    18.000     +INF     10.000      
+5.22    18.000    18.000     +INF       EPS       
+5.23    18.000    18.000     +INF       EPS       
+5.24    18.000    18.000     +INF       EPS       
+
+---- VAR CONSUMOPORHORA  
+
+      LOWER     LEVEL     UPPER    MARGINAL
+
+1       .      150.000     +INF       .         
+2       .      180.000     +INF       .         
+3       .      280.000     +INF       .         
+4       .      180.000     +INF       .         
+5       .      210.000     +INF       .         
+6       .      280.000     +INF       .         
+7       .      360.000     +INF       .         
+8       .      676.080     +INF       .         
+9       .     1002.560     +INF       .         
+10      .      822.800     +INF       .         
+11      .      817.800     +INF       .         
+12      .      641.160     +INF       .         
+13      .      632.940     +INF       .         
+14      .      443.400     +INF       .         
+15      .      421.320     +INF       .         
+16      .      663.680     +INF       .         
+17      .      800.000     +INF       .         
+18      .      940.060     +INF       .         
+19      .     1687.680     +INF       .         
+20      .     1317.200     +INF       .         
+21      .      669.440     +INF       .         
+22      .       90.000     +INF       .         
+23      .       90.000     +INF       .         
+24      .       90.000     +INF       .         
+
+
+**** REPORT SUMMARY :        0     NONOPT
+                             0 INFEASIBLE
+                             0  UNBOUNDED
+
+
+EXECUTION TIME       =        0.016 SECONDS      2 Mb  WEX235-235 Aug 17, 2010
+
+
+USER: Departamento de Ingenieria Civil               S091109:0516AN-WIN
+      Universidad Politecnica de Madrid                          DC6094
+      License for teaching and research at degree granting institutions
+
+
+**** FILE SUMMARY
+
+Input      C:\Users\Ignacio\Documents\Universidad\4\SegundoSemestre\TFG\GAMS\GAM
+           S - Prog\Prog-v4\Prog-v4.gms
+Output     C:\Users\Ignacio\Documents\Universidad\4\SegundoSemestre\TFG\GAMS\GAM
+           S - Prog\Prog-v4\Prog-v4.lst
